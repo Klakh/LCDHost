@@ -1,0 +1,18 @@
+# Normalise line endings: LF in the repository and in checkouts.
+* text=auto eol=lf
+
+# Windows batch files need CRLF to run reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files.
+*.png binary
+*.gif binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.ttf binary
+*.bz2 binary
+*.lib binary
+*.a binary
+*.dll binary
