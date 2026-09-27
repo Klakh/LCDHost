@@ -45,6 +45,7 @@
 #include <QThread>
 
 #include <QCryptographicHash>
+#include <QDirIterator>
 
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "../miniz/miniz.c"
@@ -371,6 +372,7 @@ void MainWindow::init()
 
   app_state_ = new AppState(this);
   AppRawInput::CreateInstance();
+  installBundledLayouts();
 
   if (layoutPath.isEmpty())
     layoutPath = layoutPathDefault();
@@ -587,6 +589,33 @@ QString MainWindow::layoutNameDefault()
   return "g19-default.xml";
 }
 
+// Copies the layouts shipped next to the binaries into the user data
+// directory, unless the user already has a layouts directory. This replaces
+// the step formerly done by the installer, so that a plain archive works.
+void MainWindow::installBundledLayouts()
+{
+  const QString target = app_state_->dir_data() + "layouts";
+  if (QDir(target).exists())
+    return;
+
+  const QString app_dir = QCoreApplication::applicationDirPath();
+  QDir source(app_dir + "/../layouts");
+  if (!source.exists())
+    source.setPath(app_dir + "/../Layouts"); // macOS bundle: Contents/Layouts
+  if (!source.exists())
+    return;
+
+  qDebug() << "installing bundled layouts from" << source.canonicalPath() << "to" << target;
+  QDirIterator it(source.path(), QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const QString src = it.next();
+    const QString dst = target + "/" + source.relativeFilePath(src);
+    QDir().mkpath(QFileInfo(dst).absolutePath());
+    if (!QFile::copy(src, dst))
+      qWarning() << "failed to copy layout file" << src << "to" << dst;
+  }
+}
+
 void MainWindow::clearLayout()
 {
   while( !tree()->isEmpty() )
@@ -643,7 +672,7 @@ bool MainWindow::loadLayout()
   if( !file.exists() && dir.canonicalPath() != QDir(AppState::instance()->dir_layout()).canonicalPath() )
   {
     qDebug() << file.fileName() << "doesn't exist, trying default layout directory";
-    dir.setPath( AppState::instance()->dir_data().append("layouts") );
+    dir.setPath( AppState::instance()->dir_data().append("layouts/").append(dir.dirName()) );
     info.setFile( dir, layoutName );
     file.setFileName( info.filePath() );
     if( file.exists() )

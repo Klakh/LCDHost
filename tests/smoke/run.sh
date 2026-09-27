@@ -10,9 +10,13 @@ SRC_DIR=$(cd "$(dirname "$0")/../.." && pwd)
 PLUGINS="Bar Decor Dial Graph Image Text VirtualLCD"
 
 export HOME=$(mktemp -d)
+export XDG_CONFIG_HOME="$HOME/.config"
 export QT_QPA_PLATFORM=offscreen
 mkdir -p "$HOME/Documents/LCDHost" "$HOME/.config/Link Data"
-cp -r "$SRC_DIR/layouts" "$HOME/Documents/LCDHost/"
+# Bundled layouts (next to bin/) are installed by LCDHost itself on first run.
+if [ ! -d "$BIN_DIR/../layouts" ]; then
+    cp -r "$SRC_DIR/layouts" "$HOME/Documents/LCDHost/"
+fi
 {
     echo '[plugins]'
     for p in $PLUGINS; do echo "libLH_$p.so.1.0\\enabled=true"; done
@@ -34,9 +38,17 @@ for p in $PLUGINS; do
         failed=1
     fi
 done
+if [ ! -f "$HOME/Documents/LCDHost/layouts/g19-default/g19-default.xml" ]; then
+    echo "FAIL: default layout not installed"
+    failed=1
+fi
+if ! grep -q "Loading</span> Complete" "$LOG"; then
+    echo "FAIL: default layout did not load"
+    failed=1
+fi
 if [ "$failed" -ne 0 ]; then
-    echo "--- log tail ---"
-    tail -n 50 "$LOG"
+    echo "--- relevant log lines ---"
+    grep -vE 'nbsp|HID: enumeration failed|setParent|propagateSizeHints' "$LOG" | head -n 80
     exit 1
 fi
 echo "OK: LCDHost ran ${DURATION}s and loaded: $PLUGINS"

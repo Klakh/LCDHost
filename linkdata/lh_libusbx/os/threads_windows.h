@@ -41,7 +41,8 @@ struct usbi_cond_t_ {
 typedef struct usbi_cond_t_ usbi_cond_t;
 
 // We *were* getting timespec from pthread.h:
-#if (!defined(HAVE_STRUCT_TIMESPEC) && !defined(_TIMESPEC_DEFINED))
+// MSVC 2015+ (UCRT) declares struct timespec in <time.h>.
+#if (!defined(HAVE_STRUCT_TIMESPEC) && !defined(_TIMESPEC_DEFINED)) && !(defined(_MSC_VER) && _MSC_VER >= 1900)
 #define HAVE_STRUCT_TIMESPEC 1
 #define _TIMESPEC_DEFINED 1
 struct timespec {

@@ -35,11 +35,12 @@
 
 #define HWiNFO_SENSORS_STRING_LEN  128
 
-#pragma pack(1)
-
 #ifdef Q_OS_WIN
 # include <windows.h>
 #endif
+
+// Must follow <windows.h>: Windows headers require the default packing.
+#pragma pack(1)
 
 typedef struct _HWiNFO_SENSORS_READING_LIST {
 

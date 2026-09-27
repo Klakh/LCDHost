@@ -154,6 +154,7 @@ public:
 
     QString layoutPathDefault();
     QString layoutNameDefault();
+    void installBundledLayouts();
 
     explicit MainWindow(QWidget * parent = 0, Qt::WindowFlags flags = 0);
     ~MainWindow();

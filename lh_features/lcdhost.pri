@@ -123,7 +123,9 @@ defineReplace(lh_destdir) {
         INCLUDEPATH*=$$quote($$LH_DIR_INCLUDE)
 
         win32 {
-            win32-msvc2010: DEFINES*=_CRT_SECURE_NO_WARNINGS
+            win32-msvc*: DEFINES*=_CRT_SECURE_NO_WARNINGS
+            # Win32 API used directly by several plugins (window lookup, messages).
+            LIBS*=-luser32
         }
 
         for(lh_feature, LH_FEATURES) {

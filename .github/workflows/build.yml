@@ -27,6 +27,9 @@ jobs:
       - name: Build
         run: make -C build -j"$(nproc)"
 
+      - name: Bundle layouts
+        run: cp -r layouts build/LCDHost.app/
+
       - name: Smoke test
         run: tests/smoke/run.sh build/LCDHost.app/bin 20
 
@@ -35,11 +38,8 @@ jobs:
           name: LCDHost-linux-x64
           path: build/LCDHost.app
 
-  # Windows is the historical target; not verified yet, kept non-blocking
-  # until it builds.
   windows:
     runs-on: windows-2022
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
 
@@ -62,8 +62,26 @@ jobs:
         shell: cmd
         run: cd build && nmake /NOLOGO
 
+      - name: Bundle Qt runtime and layouts
+        shell: cmd
+        run: |
+          windeployqt --release --no-translations build\LCDHost.app\bin\LCDHost.exe
+          windeployqt --release --no-translations build\LCDHost.app\bin\WebKitServer.exe
+          xcopy /E /I /Y layouts build\LCDHost.app\layouts
+
+      # Starts the bundled build headless and checks it is still running after
+      # 20 s (plugin loading is covered by the Linux smoke test).
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          $p = Start-Process -FilePath build\LCDHost.app\bin\LCDHost.exe -PassThru
+          Start-Sleep -Seconds 20
+          if ($p.HasExited) { throw "LCDHost exited early with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          Write-Output 'OK: LCDHost ran 20s'
+
       - uses: actions/upload-artifact@v7
-        if: success()
         with:
           name: LCDHost-windows-x64
           path: build/LCDHost.app

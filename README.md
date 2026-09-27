@@ -33,7 +33,9 @@ qmake ..\LCDHost.pro -r
 nmake
 ```
 
-La compilation Windows n'est pas encore validée (job CI non bloquant).
+Pour obtenir un dossier autonome : `windeployqt` sur `LCDHost.exe` et
+`WebKitServer.exe`, puis copier `layouts/` dans `build\LCDHost.app\`
+(c'est ce que fait la CI).
 
 ## Tester sans matériel
 
@@ -50,5 +52,12 @@ tests/smoke/run.sh build/LCDHost.app/bin 20
 ## Premier lancement
 
 - Les plugins sont désactivés par défaut : les charger dans l'onglet *Plugins*.
-- Les layouts fournis (`layouts/`) se copient dans
-  `~/Documents/LCDHost/layouts/`.
+- Les layouts livrés à côté des binaires (`LCDHost.app/layouts/`) sont copiés
+  dans `~/Documents/LCDHost/layouts/` au premier lancement, si ce dossier
+  n'existe pas encore.
+
+## Binaires
+
+La CI GitHub Actions (`.github/workflows/build.yml`) compile Linux et Windows
+x64, lance un test de fumée et publie les dossiers `LCDHost.app` en artefacts
+(`LCDHost-linux-x64`, `LCDHost-windows-x64`).

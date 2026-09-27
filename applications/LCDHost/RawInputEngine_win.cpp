@@ -91,7 +91,7 @@ DWORD RawInputEngineThread( void *param )
     WNDCLASSEX wcx;
     RECT windowsize;
 
-    Q_ASSERT( qWinAppInst() );
+    Q_ASSERT( GetModuleHandle(NULL) );
 
     /* Create the mainwindow */
     /* Calculate wanted window size */
@@ -107,7 +107,7 @@ DWORD RawInputEngineThread( void *param )
     wcx.lpfnWndProc = RawInputWndProc;
     wcx.cbClsExtra = 0;
     wcx.cbWndExtra = 0;
-    wcx.hInstance = qWinAppInst();
+    wcx.hInstance = GetModuleHandle(NULL);
     wcx.hIcon = NULL;
     wcx.hCursor = (HCURSOR) LoadImage( NULL, MAKEINTRESOURCE(32512), IMAGE_CURSOR, 0,0, LR_SHARED|LR_DEFAULTSIZE );
     wcx.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
