@@ -8,6 +8,10 @@ layouts (clocks, system monitors, media players, graphs, images…) and sends
 them to small screens, originally the LCDs of Logitech G-series keyboards
 (G15, G13, G510, G19).
 
+It talks to these devices directly over USB/HID, so it can replace Logitech
+Gaming Software and G HUB for the LCD. The goal of this revival is a fully
+free driver for them, see [docs/HARDWARE.md](docs/HARDWARE.md).
+
 This repository revives the project, which its original author
 [Johan Lindh](https://github.com/linkdata/LCDHost) stopped maintaining in 2016.
 The application itself is still called LCDHost.
@@ -89,6 +93,8 @@ tests/smoke/run.sh build/LCDHost.app/bin 20
 
 ## Documentation
 
+- [Hardware setup](docs/HARDWARE.md): drivers and permissions for each
+  supported device and operating system.
 - [Architecture overview](docs/ARCHITECTURE.md): how the host, plugins,
   layouts and devices fit together.
 - [Contributing](CONTRIBUTING.md): how to report bugs, propose changes and

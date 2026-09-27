@@ -63,21 +63,41 @@ Legend: ✅ done · 🚧 in progress · ⬜ planned
 - ⬜ **DataViewer**: support 64-bit processes.
 - ⬜ Re-check Mailcount and DriveStats on current Windows versions.
 
-## Phase 3: Hardware and platforms
+## Phase 3: A free driver for Logitech LCDs
+
+Goal: LCDHost works as a complete FOSS alternative to Logitech Gaming Software
+and G HUB for the LCD keyboards and speakers, with no proprietary component.
+See [docs/HARDWARE.md](docs/HARDWARE.md) for the current setup steps.
+
+- ✅ Document device setup per operating system and ship udev rules for Linux
+  (`packaging/linux/70-lcdhost.rules`).
+- ⬜ **Windows: install the G19 driver from LCDHost.** Bundle
+  [libwdi](https://github.com/pbatard/libwdi) (LGPL v3) to bind the inbox
+  WinUSB driver to the G19 display interface only (`MI_00`), with an explicit,
+  elevated "Install driver" action and a matching uninstall (driver package
+  and generated certificates).
+- ⬜ **Use upstream libusb and hidapi**: system packages on Linux (pkg-config),
+  vcpkg or pinned sources on Windows, instead of the 2013-era copies.
+- ⬜ G19: backlight colour through the HID interface (hidraw on Linux), and
+  G-keys / M-keys as layout inputs.
+- ⬜ Make the proprietary Logitech LCD SDK plugin (`LgLcdMan`) optional and
+  off by default; keep it only for users who want to stay on LGS.
+- ⬜ Clear messages when the device is busy (LGS or G HUB running) or the
+  driver or permissions are missing.
+- ⬜ Linux packages (AppImage or Flatpak, and distribution packages) that
+  install the udev rules.
+
+## Phase 4: Hardware and platforms
 
 - ⬜ **Hardware validation** with G13, G15, G19, G510 and Z10 owners (see the
   hardware test report issue form).
-- ⬜ **G HUB**: find out whether the Logitech LCD SDK path still works with
-  G HUB, alongside the kept Logitech Gaming Software support.
-- ⬜ **Linux**: udev rules so that the direct USB/HID drivers work without
-  root, and a distributable package (AppImage or Flatpak).
 - ⬜ **Generic displays**: output drivers for non-Logitech screens, such as
   small USB or serial displays driven by an ESP32 or a Raspberry Pi, or frame
   streaming over the network.
 - ⬜ Decide on macOS: the code has macOS support that nobody maintains or
   tests at the moment.
 
-## Phase 4: Releases and quality
+## Phase 5: Releases and quality
 
 - ⬜ Tagged releases with a changelog, checksums and a Windows installer.
 - ⬜ An optional, safe update notifier: check GitHub releases over HTTPS and

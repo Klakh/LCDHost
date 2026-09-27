@@ -20,6 +20,11 @@ Versions up to 0.0.38 were released by the original author; see the
   maps keep working: conditions are still reported with the former Yahoo!
   weather codes.
 
+### Added
+
+- Hardware setup guide (docs/HARDWARE.md) and udev rules for Linux
+  (packaging/linux/70-lcdhost.rules).
+
 ### Fixed
 
 - Weather and DataViewer image maps and DataViewer data files failed to

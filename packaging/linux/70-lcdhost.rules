@@ -1,0 +1,20 @@
+# LCDHost: give the user of the local session access to Logitech LCD devices.
+#
+# Install to /etc/udev/rules.d/ (manual install) or to the udev rules
+# directory of your distribution (packages), then run:
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# The file name must sort before 73-seat-late.rules for TAG+="uaccess" to
+# take effect. For access over SSH or without a local session, add
+# GROUP="plugdev", MODE="0660" to the rules below.
+
+ACTION=="remove", GOTO="lcdhost_end"
+
+# G19 / G19s LCD (libusb opens the USB device node).
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="046d", ATTR{idProduct}=="c229", TAG+="uaccess"
+
+# HID devices (hidapi, hidraw backend): G13, G15 v1, G11, G15 v2,
+# G510 (with and without audio), Z-10, and the G19 macro/backlight interface.
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c21c|c222|c225|c227|c22d|c22e|0a07|c229", TAG+="uaccess"
+
+LABEL="lcdhost_end"

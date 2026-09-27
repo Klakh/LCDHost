@@ -53,9 +53,10 @@ char __lcdhostplugin_xml[] =
   "</shortdesc>"
   "<longdesc>"
     "USB-level driver for Logitech 320x240 LCD displays, such as the G19.<br/>"
-    "On Windows, you'll need a <a href=\"http://en.wikipedia.org/wiki/WinUSB\">WinUSB</a> driver for your device.<br/>"
-    "The easiest way to do that is to download <a href=\"http://sourceforge.net/projects/libwdi/files/zadig/zadig_v1.1.1.137.7z/download\">zadig</a>"
-    "which can generate a driver for your G19."
+    "On Windows, the display interface of the G19 (USB ID 046D C229, interface 0) must use the "
+    "<a href=\"https://learn.microsoft.com/windows-hardware/drivers/usbcon/winusb\">WinUSB</a> driver; "
+    "<a href=\"https://zadig.akeo.ie/\">Zadig</a> can install it. On Linux, install the LCDHost udev rules. "
+    "See <a href=\"https://github.com/LokLakh-s/LCDHost-Revival/blob/master/docs/HARDWARE.md\">docs/HARDWARE.md</a>."
   "</longdesc>"
 "</lcdhostplugin>";
 
