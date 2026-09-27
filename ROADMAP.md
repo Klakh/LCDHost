@@ -21,7 +21,9 @@ Legend: ✅ done · 🚧 in progress · ⬜ planned
 
 ## Phase 1: Modern toolchain
 
-- ✅ **Port to Qt 6** (6.8 or later, CI on 6.11) and drop Qt 4/5 code paths.
+- ✅ **Port to Qt 6** (6.8 or later) and drop Qt 4/5 code paths. CI builds
+  with Qt 6.11 on Linux and Qt 6.10 on Windows, until aqtinstall supports the
+  new Qt 6.11+ repository layout for Windows.
 - ⬜ Replace the remaining deprecated Qt APIs reported by the compiler, and
   remove (or port to `QOpenGLWidget`) the OpenGL rendering path, which has
   been disabled at build time since the original project.
