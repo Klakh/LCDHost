@@ -380,65 +380,8 @@ void MainWindow::init()
   qDebug() << "plugins" << AppState::instance()->dir_plugins();
   qDebug() << "data" << AppState::instance()->dir_data();
 
-#ifdef Q_OS_WIN
-  const char *osname = "unknown";
-  switch( QSysInfo::windowsVersion() )
-  {
-    case QSysInfo::WV_32s:      osname = "3.1 with Win 32s"; break;
-    case QSysInfo::WV_95:	osname = "95"; break;
-    case QSysInfo::WV_98:	osname = "98"; break;
-    case QSysInfo::WV_Me:	osname = "Me"; break;
-    case QSysInfo::WV_NT:	osname = "NT"; break;
-    case QSysInfo::WV_2000:	osname = "2000"; break;
-    case QSysInfo::WV_XP:	osname = "XP"; break;
-    case QSysInfo::WV_2003:	osname = "Server 2003"; break;
-    case QSysInfo::WV_VISTA:	osname = "Vista"; break;
-    case QSysInfo::WV_WINDOWS7:	osname = "7"; break;
-    case QSysInfo::WV_CE:	osname = "CE"; break;
-    case QSysInfo::WV_CENET:	osname = "CE .NET"; break;
-    case QSysInfo::WV_CE_5:	osname = "CE 5.x"; break;
-    case QSysInfo::WV_CE_6:	osname = "CE 6.x"; break;
-    default:                    break;
-  }
-  const char *osarch = "unknown";
-  SYSTEM_INFO sysinfo;
-  GetNativeSystemInfo(&sysinfo);
-  switch (sysinfo.wProcessorArchitecture) {
-    case PROCESSOR_ARCHITECTURE_AMD64: osarch = "amd64"; break;
-    case PROCESSOR_ARCHITECTURE_ARM: osarch = "arm"; break;
-    case PROCESSOR_ARCHITECTURE_IA64: osarch = "ia64"; break;
-    case PROCESSOR_ARCHITECTURE_INTEL: osarch = "x86"; break;
-  }
-  ui->osVersion->setText(QString("Windows %1 (%2), Qt %3")
-                         .arg(osname)
-                         .arg(osarch)
-                         .arg(qVersion()));
-#endif
-
-#ifdef Q_OS_MAC
-  const char *osname = "unknown";
-  switch( QSysInfo::MacintoshVersion )
-  {
-    case QSysInfo::MV_CHEETAH:      osname = "Cheetah"; break;
-    case QSysInfo::MV_PUMA:         osname = "Puma"; break;
-    case QSysInfo::MV_JAGUAR:       osname = "Jaguar"; break;
-    case QSysInfo::MV_PANTHER:      osname = "Panther"; break;
-    case QSysInfo::MV_TIGER:        osname = "Tiger"; break;
-    case QSysInfo::MV_LEOPARD:      osname = "Leopard"; break;
-    case QSysInfo::MV_SNOWLEOPARD:  osname = "Snow Leopard"; break;
-    case QSysInfo::MV_LION:         osname = "Lion"; break;
-    case QSysInfo::MV_MOUNTAINLION: osname = "Mountain Lion"; break;
-    case QSysInfo::MV_MAVERICKS:    osname = "Mavericks"; break;
-    case QSysInfo::MV_YOSEMITE:     osname = "Yosemite"; break;
-    case QSysInfo::MV_ELCAPITAN:    osname = "El Capitan"; break;
-    default:                        break;
-  }
-  ui->osVersion->setText( QString("OS/X %1, Qt %2").arg(osname).arg(qVersion()) );
-#endif
-
-#ifdef Q_OS_LINUX
-  ui->osVersion->setText( QString("X11, Qt %1").arg(qVersion()) );
-#endif
+  ui->osVersion->setText(QString("%1 (%2), Qt %3")
+                         .arg(QSysInfo::prettyProductName(), QSysInfo::currentCpuArchitecture(), qVersion()));
 
   qDebug() << ui->osVersion->text();
 
