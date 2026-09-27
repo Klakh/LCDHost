@@ -60,7 +60,7 @@ bool LH_MonitoringSource_CoreTemp::doUpdate()
                 updateValue("CPU Speed","","CPU Speed",ctmemory->fCPUSpeed, freq_);
                 updateValue("FSB Speed","","FSB Speed",ctmemory->fFSBSpeed, freq_);
                 updateValue("Multiplier","","Multiplier",ctmemory->fMultiplier);
-                updateValue("CPU Name","","CPU Name",ctmemory->sCPUName);
+                updateValue("CPU Name","","CPU Name",QString::fromLatin1(ctmemory->sCPUName, qstrnlen(ctmemory->sCPUName, sizeof(ctmemory->sCPUName))));
             }
             UnmapViewOfFile(ctmemory);
         }
