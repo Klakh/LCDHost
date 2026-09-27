@@ -81,14 +81,14 @@ static bool TranslateDeviceNameToDriveLetter(const QString& exename, QString* ou
             {
                 size_t uNameLen = wcslen(szName);
                 qDebug() << "DOS Drive" << QString::fromWCharArray(szDrive, 2) << uNameLen << QString::fromWCharArray(szName, uNameLen);
-                if (uNameLen && uNameLen < MAX_PATH && (size_t)exename.size() >= uNameLen && exename.at(uNameLen) == QChar('\\')) {
+                if (uNameLen && uNameLen < MAX_PATH && (size_t)exename.size() > uNameLen && exename.at(uNameLen) == QChar('\\')) {
                     QString drivename(QString::fromWCharArray(szName, uNameLen));
                     qDebug() << exename << drivename;
                     if (exename.startsWith(drivename)) {
                         if (out_path) {
                             out_path->append(QChar(szDrive[0]));
                             out_path->append(QChar(szDrive[1]));
-                            out_path->append(exename.midRef(uNameLen));
+                            out_path->append(QStringView(exename).mid(uNameLen));
                         }
                         return true;
                     }

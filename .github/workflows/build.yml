@@ -62,7 +62,7 @@ jobs:
 
       - name: Build
         shell: cmd
-        run: cd build && nmake /NOLOGO /K
+        run: cd build && nmake /NOLOGO
 
       - name: Bundle Qt runtime and layouts
         shell: cmd
