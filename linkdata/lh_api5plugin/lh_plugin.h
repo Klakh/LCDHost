@@ -124,9 +124,8 @@ typedef struct lh_class_t lh_class;
     "<rev>" STRINGIZE(REVISION) "</rev>"
     "<api>" STRINGIZE(LH_API_MAJOR) "." STRINGIZE(LH_API_MINOR) "</api>"
     "<ver>" "r" STRINGIZE(REVISION) "</ver>"
-    "<versionurl>http://www.linkdata.se/lcdhost/version.php?arch=$ARCH</versionurl>"
-    "<author>Johan \"SirReal\" Lindh</author>"
-    "<homepageurl><a href=\"http://www.linkdata.se/software/lcdhost\">Link Data Stockholm</a></homepageurl>"
+    "<author>AUTHOR</author>"
+    "<homepageurl><a href=\"https://example.org\">HOMEPAGE</a></homepageurl>"
     "<logourl></logourl>"
     "<shortdesc>"
     "ONE_LINE_DESCRIPTION"
@@ -137,28 +136,8 @@ typedef struct lh_class_t lh_class;
   "</lcdhostplugin>";
 
 
-  'versionurl' is the version information URL. It replaces $ID to <id>,
-  $ARCH to the current architecture and $REV to <rev>.
-  This URL should return a text/xml document like the following sample:
-
-  <lhver arch="win32" url="http://lcdhost.googlecode.com/files/$ID_$ARCH_R$REV.zip">
-   <f id="LH_Text" r="6" />
-  </lhver>
-
-  The 'lhver' element contains default attribute values for 'f' elements.
-  The 'url' attribute expands the same parameters as the version url.
-
-  A 'f' element may contain the following attributes:
-  'id'        The plain filename, without system prefix or suffixes
-  'arch'      The architecture (ex, 'win32', 'mac32' or 'lin64d')
-  'r'         The revision number
-  'url'       The download URL
-  'api'       The API versions in the form 'major.minor'
-
-  There may be any number of 'f' elements.
-
-  The document will be cached, so if several plugins refer to the same URL,
-  the cached copy will be used. The cache is cleared intermittently.
+  A 'versionurl' element was used by the removed online update mechanism.
+  It is still accepted for compatibility but ignored.
   */
 
 #ifndef STRINGIZE

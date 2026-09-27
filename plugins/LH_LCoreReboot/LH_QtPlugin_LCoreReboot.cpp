@@ -40,7 +40,6 @@ char __lcdhostplugin_xml[] =
         "<rev>" STRINGIZE(REVISION) "</rev>"
         "<api>" STRINGIZE(LH_API_MAJOR) "." STRINGIZE(LH_API_MINOR) "</api>"
         "<ver>" STRINGIZE(VERSION) "\nr" STRINGIZE(REVISION) "</ver>"
-        "<versionurl>http://www.linkdata.se/lcdhost/version.php?arch=$ARCH</versionurl>"
         "<author>Andy \"Triscopic\" Bridges</author>"
         "<homepageurl><a href=\"http://www.codeleap.co.uk\">CodeLeap</a></homepageurl>"
         "<logourl></logourl>"

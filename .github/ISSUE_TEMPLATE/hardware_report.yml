@@ -1,0 +1,62 @@
+name: Hardware test report
+description: Tell us how LCDHost works with your LCD keyboard or display.
+labels: [hardware]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The maintainers do not own every supported device, so test reports
+        are very valuable, including "everything works".
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: G19, G19s, G15 v1, G15 v2, G13, G510, Z10, ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: LCDHost version
+      description: Shown in Help → About.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+    validations:
+      required: true
+  - type: dropdown
+    id: driver
+    attributes:
+      label: Output driver used
+      options:
+        - Lg320x240 (direct USB)
+        - Lg160x43 (direct HID)
+        - LgLcdMan (Logitech LCD SDK)
+        - Other / not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: logitech
+    attributes:
+      label: Logitech software installed
+      options:
+        - None
+        - Logitech Gaming Software (LGS)
+        - G HUB
+        - Not applicable
+  - type: textarea
+    id: result
+    attributes:
+      label: What works and what does not
+      description: Display, buttons, backlight, ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: Relevant part of the log from Documents/LCDHost/logs/ (remove personal information).
+      render: text

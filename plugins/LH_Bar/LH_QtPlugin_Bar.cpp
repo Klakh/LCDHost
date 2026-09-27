@@ -45,7 +45,6 @@ char __lcdhostplugin_xml[] =
   "<rev>" STRINGIZE(REVISION) "</rev>"
   "<api>" STRINGIZE(LH_API_MAJOR) "." STRINGIZE(LH_API_MINOR) "</api>"
   "<ver>" "r" STRINGIZE(REVISION) "</ver>"
-  "<versionurl>http://www.linkdata.se/lcdhost/version.php?arch=$ARCH</versionurl>"
   "<author>Johan \"SirReal\" Lindh</author>"
   "<homepageurl><a href=\"http://www.linkdata.se/software/lcdhost\">Link Data Stockholm</a></homepageurl>"
   "<logourl></logourl>"
