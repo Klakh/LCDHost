@@ -46,10 +46,13 @@ void AppTreeView::currentChanged( const QModelIndex & current, const QModelIndex
     AppClassTree *app_class_tree = qobject_cast<AppClassTree *>(model());
 
     QTreeView::currentChanged( current, previous );
-    if( app_class_tree )
+    // Qt emits currentChanged() with an invalid index when the model or
+    // selection is reset, in which case there is no item to preview.
+    QStandardItem *item = app_class_tree ? app_class_tree->itemFromIndex( current ) : 0;
+    if( item )
     {
         QStringList id_list;
-        id_list = app_class_tree->itemFromIndex( current )->data().toStringList();
+        id_list = item->data().toStringList();
         if( !id_list.isEmpty() )
         {
             app_class =  AppLibrary::getClass( id_list.first() );

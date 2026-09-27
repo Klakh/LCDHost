@@ -144,7 +144,10 @@ void AppLibraryThread::run()
             app_library_->unload();
         }
         else
+        {
+            qWarning() << objectName() << "failed to load:" << app_library_->lib()->errorString();
             app_library_->setState( AppLibrary::Invalid );
+        }
     }
     else
     {

@@ -100,7 +100,7 @@ defineReplace(lh_destdir) {
         contains(TEMPLATE, app) {
             unix {
                 macx: QMAKE_LFLAGS+=-Wl,-rpath,@executable_path/.,-rpath,@executable_path/../Frameworks,-rpath,@executable_path/../PlugIns
-                else: QMAKE_LFLAGS+='-Wl,-rpath,\'$$ORIGIN\''
+                else: QMAKE_LFLAGS+='-Wl,-rpath,\'\$$ORIGIN\''
                 export(QMAKE_LFLAGS)
             }
         }
@@ -108,6 +108,12 @@ defineReplace(lh_destdir) {
             macx {
                 QMAKE_LFLAGS_SONAME=-Wl,-install_name,@rpath/
                 export(QMAKE_LFLAGS_SONAME)
+            }
+            # Plugins are dlopen()ed and depend on sibling libraries such as
+            # lh_api5plugin; the executable's RUNPATH does not cover them.
+            unix:!macx {
+                QMAKE_LFLAGS+='-Wl,-rpath,\'\$$ORIGIN\''
+                export(QMAKE_LFLAGS)
             }
         }
 

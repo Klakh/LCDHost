@@ -1,0 +1,69 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev libgl1-mesa-dev libxkbcommon-x11-0
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          modules: 'qtwebengine'
+          cache: true
+
+      - name: Configure
+        run: mkdir build && cd build && qmake ../LCDHost.pro -r
+
+      - name: Build
+        run: make -C build -j"$(nproc)"
+
+      - name: Smoke test
+        run: tests/smoke/run.sh build/LCDHost.app/bin 20
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: LCDHost-linux-x64
+          path: build/LCDHost.app
+
+  # Windows is the historical target; not verified yet, kept non-blocking
+  # until it builds.
+  windows:
+    runs-on: windows-2022
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtwebengine'
+          cache: true
+
+      - name: Configure
+        shell: cmd
+        run: mkdir build && cd build && qmake ..\LCDHost.pro -r
+
+      - name: Build
+        shell: cmd
+        run: cd build && nmake /NOLOGO
+
+      - uses: actions/upload-artifact@v7
+        if: success()
+        with:
+          name: LCDHost-windows-x64
+          path: build/LCDHost.app
