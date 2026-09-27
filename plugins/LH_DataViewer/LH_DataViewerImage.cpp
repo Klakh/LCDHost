@@ -169,7 +169,7 @@ void LH_DataViewerImage::fileChanged()
             QRegularExpression rx = QRegularExpression("(?:\\s*)?(?:;.*)?$");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
+            QStringList items = fileContent.split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
             imageDefinitions_->clear();
             columnDefinitions_->clear();
 

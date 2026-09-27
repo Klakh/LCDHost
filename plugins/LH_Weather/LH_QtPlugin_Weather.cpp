@@ -1,7 +1,8 @@
 /**
   \file     LH_QtPlugin_Weather.cpp
-  @author   Andy Bridges <triscopic@codeleap.co.uk>
-  Copyright (c) 2010 Andy Bridges
+  @author   Andy "Triscopic" Bridges <triscopic@codeleap.co.uk>
+  Copyright (c) 2010 Andrew Bridges
+
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -25,14 +26,14 @@
 #include "LH_QtPlugin_Weather.h"
 
 #include <QDebug>
-#include <QPainter>
-#include <QDesktopServices>
-#include <QDate>
-#include <QRegularExpression>
-#include <QFile>
-#include <QDir>
-#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QLocale>
 #include <QNetworkProxy>
+#include <QRegularExpression>
+#include <QUrlQuery>
+
+#include <cmath>
 
 LH_PLUGIN(LH_QtPlugin_Weather)
 
@@ -44,38 +45,118 @@ char __lcdhostplugin_xml[] =
   "<api>" STRINGIZE(LH_API_MAJOR) "." STRINGIZE(LH_API_MINOR) "</api>"
   "<ver>" STRINGIZE(VERSION) "\nr" STRINGIZE(REVISION) "</ver>"
   "<author>Andy \"Triscopic\" Bridges</author>"
-  "<homepageurl><a href=\"http://www.codeleap.co.uk\">CodeLeap</a></homepageurl>"
+  "<homepageurl><a href=\"https://github.com/LokLakh-s/LCDHost-Revival\">LCDHost Revival</a></homepageurl>"
   "<logourl></logourl>"
   "<shortdesc>"
-  "Connects to Yahoo's weather service and displays the results."
+  "Displays current weather conditions and a five day forecast."
   "</shortdesc>"
   "<longdesc>"
-  "<p>The weather plugin draws on Yahoo's weather feeds and makes data available via a text and image class. Additionally, "
-  "translation is also supported (from English as Yahoo's API is only available in that one language), but it has to be "
-  "done manually: select your language from the list and unknown words will be stored in a file in the LCDHost folder. "
-  "Edit this file to add the missing translations.</p>"
-  "<p>To configure the plugin, use the plugin settings panel to the right, entering in your location and selecting the "
-  "units you want to use, etc. These settings are then stored globally and will be applied to any layout which displays "
-  "the weather.</p>"
+  "<p>The weather plugin gets its data from <a href=\"https://open-meteo.com/\">Open-Meteo</a> "
+  "(free, no account needed; data licensed under CC BY 4.0) and makes it available via a text and an image class. "
+  "Translation is supported, but it has to be done manually: select your language from the list and unknown words "
+  "will be stored in a file in the LCDHost folder. Edit this file to add the missing translations.</p>"
+  "<p>To configure the plugin, use the plugin settings panel to the right: enter your location (a city name, optionally "
+  "followed by a comma and the region or country, or \"latitude, longitude\") and select the units you want to use. "
+  "These settings are stored globally and applied to any layout which displays the weather.</p>"
   "<p>To add weather data to a layout, use one of the included classes:</p>"
   "<p><b>Weather Text</b></p>"
-  "<p>Weather Text objects simply show weather data in a standard text object, such as conditions, temperatures, wind speeds, "
+  "<p>Weather Text objects show weather data in a standard text object, such as conditions, temperatures, wind speeds, "
   "etc. To make a layout most flexible never add a static text object for the city or country names - use a weather text "
   "object and set it to display location data. That way other users will be able to load your layouts and have them work "
   "straight away.</p>"
   "<p><b>Weather Image</b></p>"
-  "<p>The image class looks up an image based on a Yahoo Weather Status Code. To do this it requires a text file (called the "
-  "image map) listing all the codes and matching each one to two images in the same folder (one for day and one for night). "
-  "Ideally, these images should be placed in a dedicated subfolder within the layout alongside the image map file. See the "
-  "documentation for more details.</p>"
+  "<p>The image class looks up an image based on a weather status code (the codes of the former Yahoo! Weather feed, "
+  "0 to 47, and 3200 for \"not available\"). To do this it requires a text file (called the image map) listing all the "
+  "codes and matching each one to two images in the same folder (one for day and one for night).</p>"
   "<p><b>Weather Browser Opener</b></p>"
-  "<p>This object can be added to a layout allowing the a key to be used to open Yahoo Weather's full forecast in the "
-  "default browser.</p>"
+  "<p>This object can be added to a layout allowing a key to be used to open the forecast in the default browser.</p>"
   "</longdesc>"
 "</lcdhostplugin>";
 
-//------------------------------------------------------------------------------------------------------------------
+namespace {
 
+const char *kGeocodingUrl = "https://geocoding-api.open-meteo.com/v1/search";
+const char *kForecastUrl = "https://api.open-meteo.com/v1/forecast";
+const int kForecastDays = 5;
+const int kUnknownCode = 3200;
+
+// Country names users commonly type that differ from ISO 3166-1 codes.
+QString countryAlias(const QString &word)
+{
+    if (word == "uk") return "gb";
+    if (word == "usa" || word == "america") return "us";
+    return word;
+}
+
+struct Condition
+{
+    int dayCode;
+    int nightCode;
+    const char *text;
+};
+
+// Maps a WMO weather interpretation code (as returned by Open-Meteo) to the
+// Yahoo! Weather condition codes used by image maps, and a description.
+Condition wmoCondition(int wmo)
+{
+    switch (wmo)
+    {
+    case 0:  return {32, 31, "Clear"};
+    case 1:  return {34, 33, "Mainly Clear"};
+    case 2:  return {30, 29, "Partly Cloudy"};
+    case 3:  return {26, 26, "Cloudy"};
+    case 45: return {20, 20, "Fog"};
+    case 48: return {20, 20, "Freezing Fog"};
+    case 51: return {9, 9, "Light Drizzle"};
+    case 53: return {9, 9, "Drizzle"};
+    case 55: return {9, 9, "Heavy Drizzle"};
+    case 56: return {8, 8, "Light Freezing Drizzle"};
+    case 57: return {8, 8, "Freezing Drizzle"};
+    case 61: return {11, 11, "Light Rain"};
+    case 63: return {12, 12, "Rain"};
+    case 65: return {12, 12, "Heavy Rain"};
+    case 66: return {10, 10, "Light Freezing Rain"};
+    case 67: return {10, 10, "Freezing Rain"};
+    case 71: return {14, 14, "Light Snow"};
+    case 73: return {16, 16, "Snow"};
+    case 75: return {41, 41, "Heavy Snow"};
+    case 77: return {16, 16, "Snow Grains"};
+    case 80: return {40, 40, "Light Showers"};
+    case 81: return {11, 11, "Showers"};
+    case 82: return {12, 12, "Heavy Showers"};
+    case 85: return {42, 42, "Light Snow Showers"};
+    case 86: return {46, 46, "Snow Showers"};
+    case 95: return {4, 4, "Thunderstorms"};
+    case 96: return {3, 3, "Thunderstorms with Hail"};
+    case 99: return {3, 3, "Severe Thunderstorms with Hail"};
+    default: return {kUnknownCode, kUnknownCode, "Unknown"};
+    }
+}
+
+QString rounded(const QJsonValue &value, int decimals = 0)
+{
+    if (!value.isDouble())
+        return QString();
+    return QString::number(value.toDouble(), 'f', decimals);
+}
+
+QLocale english()
+{
+    return QLocale(QLocale::English, QLocale::UnitedKingdom);
+}
+
+// "2026-09-27T06:52" -> "6:52 am", the format used by the former feed.
+QString shortTime(const QString &isoDateTime)
+{
+    const QDateTime dt = QDateTime::fromString(isoDateTime, Qt::ISODate);
+    if (!dt.isValid())
+        return QString();
+    return english().toString(dt.time(), "h:mm ap").toLower();
+}
+
+} // namespace
+
+//------------------------------------------------------------------------------------------------------------------
 
 LH_QtPlugin_Weather::LH_QtPlugin_Weather() : weather_data(), translator("Weather", this)
 {}
@@ -83,7 +164,6 @@ LH_QtPlugin_Weather::LH_QtPlugin_Weather() : weather_data(), translator("Weather
 const char *LH_QtPlugin_Weather::userInit()
 {
     if( const char *err = LH_QtPlugin::userInit() ) return err;
-    lastrefresh_ = QDateTime::currentDateTime();
     translator.setTargetLanguage("en");
 
     setup_show_all_languages_ = new LH_Qt_bool(this,"^Show Untranslated Languages", false, LH_FLAG_NOSAVE_DATA | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
@@ -91,33 +171,26 @@ const char *LH_QtPlugin_Weather::userInit()
     setup_show_all_languages_->setHelp("<p>Ticking this box will allow you choose a language with no current translation. Unknown items will be added to a translation cache located in the LCDHost directory. Simply edit this cache to complete the translation.</p>");
 
     setup_languages_ = new LH_Qt_QStringList(this, "Language", QStringList(), LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_languages_->setHelp("<p>Yahoo's Weather API doesn't have multilingual support; the translation is instead done manually.</p>"
+    setup_languages_->setHelp("<p>Weather descriptions are provided in English and translated using a local translation cache.</p>"
                               "<p>Missing translations can be corrected by editing the translation cache located in the LCDHost directory.</p>");
     connect(setup_languages_, SIGNAL(changed()), this, SLOT(selectLanguage()));
 
     setup_language_ = new LH_Qt_QString(this, "Language Code", "en", LH_FLAG_HIDDEN | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE | LH_FLAG_BLANKTITLE);
     connect(setup_language_, SIGNAL(changed()), this, SLOT(setLanguage()));
 
-    setup_location_name_ = new LH_Qt_QString(this,"Location",QString("London UK"), LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_location_name_->setHelp("The location whose weather you want to display");
+    setup_location_name_ = new LH_Qt_QString(this,"Location",QString("London, UK"), LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
+    setup_location_name_->setHelp("<p>The location whose weather you want to display: a city name, optionally followed by "
+                                  "a comma and the region or country (e.g. \"Paris, France\"), or \"latitude, longitude\".</p>");
     setup_location_name_->setOrder(-5);
-    connect( setup_location_name_, SIGNAL(changed()), this, SLOT(fetchWOEID()));
+    connect( setup_location_name_, SIGNAL(changed()), this, SLOT(lookupLocation()));
 
-    setup_yahoo_woeid_ = new LH_Qt_QString(this,"Y! WOEID",QString("26459500"), LH_FLAG_HIDDEN | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_yahoo_woeid_->setHelp("Internal use only: Yahoo Where On Earth ID");
-    setup_yahoo_woeid_->setOrder(-4);
-
-    setup_longlat_ = new LH_Qt_QString(this,"LongLat",QString(""), LH_FLAG_HIDDEN | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_longlat_->setHelp("Internal use only: Longitude & Latitude");
-    setup_longlat_->setOrder(-4);
-
-    setup_yahoo_5dayid_ = new LH_Qt_QString(this,"Y! 5Day ID",QString("UKXX1726"), LH_FLAG_HIDDEN | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_yahoo_5dayid_->setHelp("Internal use only: Yahoo id code for the 5-day feed");
-    setup_yahoo_5dayid_->setOrder(-4);
+    setup_coordinates_ = new LH_Qt_QString(this,"Coordinates",QString(), LH_FLAG_HIDDEN | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
+    setup_coordinates_->setHelp("Internal use only: latitude and longitude of the location");
+    setup_coordinates_->setOrder(-4);
 
     setup_city_ = new LH_Qt_QString(this,"^City",QString(), LH_FLAG_READONLY | LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
     setup_city_->setHelp("<p>The location whose weather is currently being displayed.</p>"
-                         "<p>The weather connector tries to look up the city as entered in the \"Location\" box, and displays the best result here.</p>");
+                         "<p>The plugin looks up the place entered in the \"Location\" box, and displays the best match here.</p>");
     setup_city_->setOrder(-4);
 
     QStringList unitTypes = QStringList();
@@ -126,214 +199,24 @@ const char *LH_QtPlugin_Weather::userInit()
     setup_units_type_ = new LH_Qt_QStringList(this, "Units", unitTypes, LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
     setup_units_type_->setHelp("Select whether you want metric (European) units or imperial (British Commonwealth & USA)");
     setup_units_type_->setOrder(-1);
-    connect( setup_units_type_, SIGNAL(changed()), this, SLOT(fetch2DayU()) );
-
-    setup_method_ = NULL;
+    connect( setup_units_type_, SIGNAL(changed()), this, SLOT(fetchForecast()) );
 
     setup_refresh_ = new LH_Qt_int(this,tr("Refresh (minutes)"),5, LH_FLAG_NOSINK | LH_FLAG_NOSOURCE);
-    setup_refresh_->setHelp("How long to wait before checking for an update to the feed (in minutes)");
+    setup_refresh_->setHelp("How long to wait before checking for an update of the weather data (in minutes)");
     connect( setup_refresh_, SIGNAL(changed()), this, SLOT(requestPolling()) );
-
-    connectionId_WOEID = NULL;
-    connectionId_2Day = NULL;
-    connectionId_5Day = NULL;
 
     setup_json_weather_ = new LH_Qt_QString(this, "JSON Data", QString(), LH_FLAG_NOSAVE_DATA | LH_FLAG_NOSAVE_LINK | LH_FLAG_NOSINK | LH_FLAG_HIDDEN);
     setup_json_weather_->setPublishPath("/JSON_Weather_Data");
     setup_json_weather_->setMimeType("application/x-weather");
 
-    connect(&nam2Day,  SIGNAL(finished(QNetworkReply*)), this, SLOT(finished2Day(QNetworkReply*)));
-    connect(&nam5Day,  SIGNAL(finished(QNetworkReply*)), this, SLOT(finished5Day(QNetworkReply*)));
-    connect(&namWOEID, SIGNAL(finished(QNetworkReply*)), this, SLOT(finishedWOEID(QNetworkReply*)));
+    for (int i = 0; i < kForecastDays; i++)
+        setNoForecast(weather_data.forecast[i]);
 
     updateLanguagesList();
 
+    // Refresh as soon as the first once-a-second notification arrives.
+    lastrefresh_ = QDateTime();
     return 0;
-}
-
-void LH_QtPlugin_Weather::fetch2Day()
-{
-    connectionId_2Day = fetchWeather(false, xml2Day_, nam2Day, connectionId_2Day);
-}
-
-void LH_QtPlugin_Weather::fetch2DayU()
-{
-    if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Units Changed: Update Weather (2Day)";
-    connectionId_2Day = fetchWeather(false, xml2Day_, nam2Day, connectionId_2Day);
-}
-
-void LH_QtPlugin_Weather::fetch5Day()
-{
-    lastrefresh_ = QDateTime::currentDateTime();
-    connectionId_5Day = fetchWeather(true, xml5Day_, nam5Day, connectionId_5Day);
-}
-
-QNetworkReply* LH_QtPlugin_Weather::fetchWeather(bool is5Day, QXmlStreamReader& xml_, QNetworkAccessManager& nam, QNetworkReply* currentReply)
-{
-    if(setup_yahoo_woeid_->value()=="")
-        return 0;
-    if(currentReply!=NULL && currentReply->isRunning()) {
-        currentReply->abort();
-        currentReply->deleteLater();
-        currentReply = NULL;
-    }
-
-    xml_.clear();
-    QString unitValue = "c";
-    if(setup_units_type_->value()==1) unitValue = "f";
-
-    QString host;
-    QString path;
-    QString params = "";
-    if(is5Day)
-    {
-        // http://developer.yahoo.com/forum/General-Discussion-at-YDN/Yahoo-Weather-5-day-Forecast/1228762478000-84d25277-b9c6-35c0-8c54-c487a5093090#
-        host = "xml.weather.yahoo.com";
-        path = QString("/forecastrss/%1&d=5_%2.xml").arg(setup_yahoo_5dayid_->value(),unitValue);
-    } else {
-        host = "weather.yahooapis.com";
-        path = QString("/forecastrss");
-        params = QString("w=%1&u=%2").arg(setup_yahoo_woeid_->value(),unitValue);
-    }
-    QUrl url = QUrl::fromUserInput(QString("http://%1%2").arg(host,path));
-
-    QNetworkProxyQuery npq(url);
-    QList<QNetworkProxy> listOfProxies = QNetworkProxyFactory::systemProxyForQuery(npq);
-    if(listOfProxies.count()!=0)
-        if(listOfProxies.at(0).type() != QNetworkProxy::NoProxy) {
-            if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Using Proxy: " << listOfProxies.at(0).hostName()<< ":" << QString::number(listOfProxies.at(0).port());
-            nam.setProxy(listOfProxies.at(0));
-        }
-
-
-    QString fullUrl = QString("http://%1%2?%3").arg(host,path,params);
-    if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Fetch " << (is5Day? "5Day": "2Day") << " via " << fullUrl;
-
-    return nam.get( QNetworkRequest(fullUrl) );
-}
-
-void LH_QtPlugin_Weather::fetchWOEID()
-{
-    if(setup_location_name_->value()=="") return;
-
-    if(connectionId_WOEID!=NULL && connectionId_WOEID->isRunning()) {
-        connectionId_WOEID->abort();
-        connectionId_WOEID->deleteLater();
-        connectionId_WOEID = NULL;
-    }
-
-    // App ID is meant to be unique to each app. If you want to build your own weather-related
-    // application, Yahoo ask that sign up for your own ID (free of charge) via their developer
-    // site. Alternatvely you can use the id "YahooDemo" (without the quotes) to use the service
-    // without signing up. The only thing Yahoo might get upset about is if someone uses the id
-    // below for something other than "LH_Weather". But as it's open source there's nothing I
-    // can do about it apart from write this...
-    QString appid = "itP1aXDV34FW8OAAepdI2XJOKWWqJRUvV0NC_QaGlLwTryEZGw228CtxtzzYv9wceq73jDvqTYFhhA--";
-    QString locationName = setup_location_name_->value();
-    locationName = QString(QUrl::toPercentEncoding(locationName.replace(' ','-')));
-    QUrl url = QUrl::fromUserInput(QString("http://where.yahooapis.com/v1/places.q('%1')?appid=%2")
-                                   .arg(locationName).arg(appid));
-    QNetworkProxyQuery npq(url);
-    QList<QNetworkProxy> listOfProxies = QNetworkProxyFactory::systemProxyForQuery(npq);
-    if(listOfProxies.count()!=0)
-        if(listOfProxies.at(0).type() != QNetworkProxy::NoProxy) {
-            if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Using Proxy: " << listOfProxies.at(0).hostName() << ":" << QString::number(listOfProxies.at(0).port());
-            namWOEID.setProxy(listOfProxies.at(0));
-        }
-
-    if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Fetch WOEID for: " << setup_location_name_->value() << " via " << url.toString();
-
-    for(int i = 0; i<5; i++)
-        setNoForecast(weather_data.forecast[i]);
-
-    connectionId_WOEID = namWOEID.get( QNetworkRequest(url.toString()) );
-}
-
-void LH_QtPlugin_Weather::finished2Day( QNetworkReply* reply )
-{
-    if( reply )
-    {
-        if( reply->error() == QNetworkReply::NoError )
-        {
-            if( reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 200 )
-            {
-                processResponse(reply->readAll(), "2Day", xml2Day_, &LH_QtPlugin_Weather::parseXml2Day);
-            }
-            else
-                qWarning() << "LH_QtPlugin_Weather: Error during HTTP (2Day) fetch:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) << reply->errorString() << reply->url().toString();
-        }
-        reply->deleteLater();
-        reply = NULL;
-    }
-    connectionId_2Day->deleteLater();
-    connectionId_2Day = NULL;
-}
-
-void LH_QtPlugin_Weather::finished5Day( QNetworkReply* reply )
-{
-    if( reply )
-    {
-        if( reply->error() == QNetworkReply::NoError )
-        {
-            if( reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 200 )
-            {
-                processResponse(reply->readAll(), "5Day", xml5Day_, &LH_QtPlugin_Weather::parseXml5Day);
-            }
-            else
-                qWarning() << "LH_QtPlugin_Weather: Error during HTTP (5Day) fetch:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) << reply->errorString() << reply->url().toString();
-        }
-        reply->deleteLater();
-        reply = NULL;
-    }
-    connectionId_5Day->deleteLater();
-    connectionId_5Day = NULL;
-}
-
-void LH_QtPlugin_Weather::finishedWOEID( QNetworkReply* reply )
-{
-    if( reply )
-    {
-        if( reply->error() == QNetworkReply::NoError )
-        {
-            if( reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 200 )
-            {
-                processResponse(reply->readAll(), "WOEID", xmlWOEID_, &LH_QtPlugin_Weather::parseXmlWOEID);
-            }
-            else
-                qWarning() << "LH_QtPlugin_Weather: Error during HTTP (WOEID) fetch:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) << reply->errorString() << reply->url().toString();
-        }
-        reply->deleteLater();
-        reply = NULL;
-    }
-    connectionId_WOEID->deleteLater();
-    connectionId_WOEID = NULL;
-}
-
-void LH_QtPlugin_Weather::processResponse(QByteArray xmlData, QString name, QXmlStreamReader& xmlReader, xmlParserFunc xmlParser)
-{
-    xmlReader.clear();
-    if(xmlData.length()!=0)
-    {
-        if(debugSaveXML)saveXMLResponse(xmlData,name);
-        xmlReader.addData(xmlData);
-        (this->*xmlParser)();
-        QString weatherJSON = weather_data.serialize();
-        setup_json_weather_->setValue(weatherJSON);
-    }
-}
-
-void LH_QtPlugin_Weather::saveXMLResponse(QByteArray data, QString docType)
-{
-    QDateTime now = QDateTime::currentDateTime();
-    QFile file(QString("%3\\lcdhost.weather.%1.%2.xml").arg(docType, now.toString("yyMMddhhmmsszzz"), state()->dir_binaries));
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        qWarning() << "LH_QtPlugin_Weather: Unable to save XML data";
-    } else {
-        file.write(data);
-        file.close();
-        qDebug() << "LH_QtPlugin_Weather: XML file created" << file.fileName() << data.length();
-    }
 }
 
 int LH_QtPlugin_Weather::notify(int code,void* param)
@@ -341,179 +224,292 @@ int LH_QtPlugin_Weather::notify(int code,void* param)
     Q_UNUSED(param);
     if( code & LH_NOTE_SECOND )
     {
-        if( lastrefresh_.addSecs(60*setup_refresh_->value()) < QDateTime::currentDateTime() )
+        const int minutes = qMax(1, setup_refresh_->value());
+        if( !lastrefresh_.isValid() || lastrefresh_.addSecs(60*minutes) < QDateTime::currentDateTime() )
         {
             lastrefresh_ = QDateTime::currentDateTime();
-            if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Update Weather (2Day)";
-            fetch2Day();
+            if (setup_coordinates_->value().isEmpty())
+                lookupLocation();
+            else
+                fetchForecast();
         }
     }
     return LH_NOTE_SECOND;
 }
 
-QDate LH_QtPlugin_Weather::toDate(QString str, bool isLong)
+bool LH_QtPlugin_Weather::isMetric() const
 {
-    QString ptn = "^([0-9]*) (\\w\\w\\w) ([0-9]*)$";
-    if(isLong)
-        ptn = "^\\w\\w\\w, ([0-9]*) (\\w\\w\\w) ([0-9]*) [0-9]*:[0-9]* \\w\\w.*$";
-    QRegularExpression re(ptn);
-    QRegularExpressionMatch reMatch;
-    if ((reMatch = re.match(str)).hasMatch()) {
-        int day = reMatch.captured(1).toInt();
-        int month = 0;
-        if ( reMatch.captured(2) == "Jan") month = 1; else
-        if ( reMatch.captured(2) == "Feb") month = 2; else
-        if ( reMatch.captured(2) == "Mar") month = 3; else
-        if ( reMatch.captured(2) == "Apr") month = 4; else
-        if ( reMatch.captured(2) == "May") month = 5; else
-        if ( reMatch.captured(2) == "Jun") month = 6; else
-        if ( reMatch.captured(2) == "Jul") month = 7; else
-        if ( reMatch.captured(2) == "Aug") month = 8; else
-        if ( reMatch.captured(2) == "Sep") month = 9; else
-        if ( reMatch.captured(2) == "Oct") month = 10; else
-        if ( reMatch.captured(2) == "Nov") month = 11; else
-        if ( reMatch.captured(2) == "Dec") month = 12;
-        int year = reMatch.captured(3).toInt();
-        return QDate(year,month,day);
-    }
-
-    return QDate(1,1,1);
+    return setup_units_type_->value() != 1;
 }
 
-void LH_QtPlugin_Weather::parseXml2Day()
-{ parseXmlWeather(false, xml2Day_); }
-
-void LH_QtPlugin_Weather::parseXml5Day()
-{ parseXmlWeather(true, xml5Day_); }
-
-void LH_QtPlugin_Weather::parseXmlWeather(bool is5Day, QXmlStreamReader& xml_)
+QNetworkReply *LH_QtPlugin_Weather::get(const QUrl &url)
 {
-    weather_data.forecastDays = 0;
+    const QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(url));
+    nam_.setProxy(proxies.isEmpty() ? QNetworkProxy(QNetworkProxy::NoProxy) : proxies.first());
 
-    for(int i = 0; i<5; i++)
-        if((!is5Day && i<2) || (is5Day && i>=2))setNoForecast(weather_data.forecast[i]);
+    QNetworkRequest request(url);
+    request.setRawHeader("User-Agent", "LCDHost-Weather (https://github.com/LokLakh-s/LCDHost-Revival)");
+    request.setTransferTimeout(30000);
+    return nam_.get(request);
+}
 
-    QString currentTag;
-    if(!is5Day) weather_data.url = ""; //setup_current_url_->setValue( "" );
-    while (!xml_.atEnd())
+void LH_QtPlugin_Weather::lookupLocation()
+{
+    const QString location = setup_location_name_->value().trimmed();
+    if (location.isEmpty())
+        return;
+
+    // "latitude, longitude" needs no lookup.
+    static const QRegularExpression coords("^\\s*(-?\\d+(?:\\.\\d+)?)\\s*[,;]\\s*(-?\\d+(?:\\.\\d+)?)\\s*$");
+    const QRegularExpressionMatch coordsMatch = coords.match(location);
+    if (coordsMatch.hasMatch())
     {
-        xml_.readNext();
-        if (xml_.isStartElement())
-        {
-            currentTag = xml_.name().toString();
-            if(!is5Day)
-            {
-                if( xml_.name() == "location" )
-                {
-                    weather_data.location.city = getWeatherValue(xml_, "city");
-                    weather_data.location.region = getWeatherValue(xml_, "region");
-                    weather_data.location.country = getWeatherValue(xml_, "country");
-                }
-                if( xml_.name() == "units" )
-                {
-                    weather_data.units.temperature = getWeatherValue(xml_, "temperature", QChar(0x00B0));
-                    weather_data.units.distance = getWeatherValue(xml_, "distance");
-                    weather_data.units.pressure = getWeatherValue(xml_, "pressure");
-                    weather_data.units.speed = getWeatherValue(xml_, "speed");
-                }
-                if( xml_.name() == "wind" )
-                {
-                    weather_data.wind.chill = getWeatherValue(xml_, "chill");
-                    weather_data.wind.direction = getWeatherValue(xml_, "direction");
-                    weather_data.wind.speed = getWeatherValue(xml_, "speed");
-                }
-                if( xml_.name() == "atmosphere" )
-                {
-                    weather_data.atmosphere.humidity = getWeatherValue(xml_, "humidity");
-                    weather_data.atmosphere.visibility = getWeatherValue(xml_, "visibility");
-                    weather_data.atmosphere.pressure = getWeatherValue(xml_, "pressure");
+        setup_coordinates_->setValue(QString("%1,%2").arg(coordsMatch.captured(1), coordsMatch.captured(2)));
+        weather_data.location = locationData();
+        weather_data.location.city = location;
+        setup_city_->setValue(location);
+        fetchForecast();
+        return;
+    }
 
-                    int risingState = getWeatherValue(xml_, "rising").toInt();
-                    switch(risingState)
-                    {
-                    case 0:
-                        weather_data.atmosphere.barometricReading = "Steady";
-                        break;
-                    case 1:
-                        weather_data.atmosphere.barometricReading = "Rising";
-                        break;
-                    case 2:
-                        weather_data.atmosphere.barometricReading = "Falling";
-                        break;
-                    }
-                }
-                if( xml_.name() == "astronomy" )
-                {
-                    weather_data.astronomy.sunrise = getWeatherValue(xml_, "sunrise");
-                    weather_data.astronomy.sunset = getWeatherValue(xml_, "sunset");
-                }
-                if( xml_.name() == "condition" )
-                {
-                    weather_data.condition.text = getWeatherValue(xml_, "text");
-                    weather_data.condition.code = getWeatherValue(xml_, "code");
-                    weather_data.condition.temp = getWeatherValue(xml_, "temp");
-                    weather_data.condition.date = getWeatherValue(xml_, "date");
-                }
-            }
-            if( xml_.name() == "forecast" )
-            {
-                weather_data.forecastDays ++;
-                QDate conditionDate = toDate(weather_data.condition.date, true);
-                QDate forecastDate = toDate(xml_.attributes().value("date").toString(), false);
+    // "City, Region, Country": search for the city, use the rest to choose
+    // between places with the same name.
+    QStringList parts = location.split(',', Qt::SkipEmptyParts);
+    geocodeHints_.clear();
+    for (int i = 1; i < parts.count(); i++)
+        geocodeHints_ += parts.at(i).toLower().split(' ', Qt::SkipEmptyParts);
+    geocode(parts.first().trimmed());
+}
 
-                for(int i=0; i<5; i++)
-                    if (forecastDate == conditionDate.addDays(i)) {
-                        setForecast(xml_, weather_data.forecast[i], i);
-                        break;
-                    }
-            }
-        }
-        else if (xml_.isEndElement())
+void LH_QtPlugin_Weather::geocode(const QString &name)
+{
+    if (geocodeReply_)
+        geocodeReply_->abort();
+
+    geocodeName_ = name;
+    QUrl url(kGeocodingUrl);
+    QUrlQuery query;
+    query.addQueryItem("name", name);
+    query.addQueryItem("count", "10");
+    query.addQueryItem("language", "en");
+    query.addQueryItem("format", "json");
+    url.setQuery(query);
+
+    QNetworkReply *reply = get(url);
+    geocodeReply_ = reply;
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { geocodeFinished(reply); });
+}
+
+void LH_QtPlugin_Weather::geocodeFinished(QNetworkReply *reply)
+{
+    reply->deleteLater();
+    if (reply != geocodeReply_)
+        return; // superseded by a newer lookup
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        if (reply->error() != QNetworkReply::OperationCanceledError)
+            qWarning() << "LH_QtPlugin_Weather: location lookup failed:" << reply->errorString();
+        return;
+    }
+
+    const QJsonArray results = QJsonDocument::fromJson(reply->readAll()).object().value("results").toArray();
+    if (results.isEmpty())
+    {
+        // "New York City" or "London UK": retry without the last word and use
+        // it to pick the right place.
+        const int space = geocodeName_.lastIndexOf(' ');
+        if (space > 0)
         {
-            //nothing
+            geocodeHints_.prepend(geocodeName_.mid(space + 1).toLower());
+            geocode(geocodeName_.left(space));
+            return;
         }
-        else if (xml_.isCharacters() && !xml_.isWhitespace())
-        {
-            if(!is5Day && currentTag == "link")
-            {
-                if (weather_data.url == "") //setup_current_url_->value() == ""
+        setup_city_->setValue("Location not recognised");
+        setup_coordinates_->setValue(QString());
+        return;
+    }
+
+    // Results come sorted by relevance; prefer the first one matching the most hints.
+    QJsonObject best = results.first().toObject();
+    int bestScore = 0;
+    for (const QJsonValue &value : results)
+    {
+        const QJsonObject place = value.toObject();
+        const QStringList fields = {
+            place.value("country").toString().toLower(),
+            place.value("country_code").toString().toLower(),
+            place.value("admin1").toString().toLower(),
+            place.value("admin2").toString().toLower(),
+        };
+        int score = 0;
+        for (const QString &hint : std::as_const(geocodeHints_))
+            for (const QString &field : fields)
+                if (!field.isEmpty() && (field == countryAlias(hint) || field.contains(hint)))
                 {
-                    weather_data.url = xml_.text().toString(); //setup_current_url_->setValue();
-                    QRegularExpression re = QRegularExpression("(/([^/_]*)(?:_.|)\\.html)$");
-                    QRegularExpressionMatch reMatch;
-                    if ((reMatch = re.match(xml_.text().toString())).hasMatch())
-                    {
-                        if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Set 5dayid" << reMatch.captured(2);
-                        setup_yahoo_5dayid_->setValue(reMatch.captured(2));
-                    }
+                    score++;
+                    break;
                 }
-            }
+        if (score > bestScore)
+        {
+            best = place;
+            bestScore = score;
         }
     }
 
-    if (xml_.error() && xml_.error() != QXmlStreamReader::PrematureEndOfDocumentError)
+    weather_data.location.city = best.value("name").toString();
+    weather_data.location.region = best.value("admin1").toString();
+    weather_data.location.country = best.value("country").toString();
+    setup_coordinates_->setValue(QString("%1,%2")
+                                 .arg(best.value("latitude").toDouble(), 0, 'f', 4)
+                                 .arg(best.value("longitude").toDouble(), 0, 'f', 4));
+
+    QStringList cityName(weather_data.location.city);
+    if (!weather_data.location.region.isEmpty()) cityName << weather_data.location.region;
+    if (!weather_data.location.country.isEmpty()) cityName << weather_data.location.country;
+    setup_city_->setValue(cityName.join(", "));
+
+    fetchForecast();
+}
+
+void LH_QtPlugin_Weather::fetchForecast()
+{
+    const QStringList coords = setup_coordinates_->value().split(',');
+    if (coords.count() != 2)
+        return;
+    if (forecastReply_)
+        forecastReply_->abort();
+
+    QUrl url(kForecastUrl);
+    QUrlQuery query;
+    query.addQueryItem("latitude", coords.at(0));
+    query.addQueryItem("longitude", coords.at(1));
+    query.addQueryItem("current", "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,"
+                                  "pressure_msl,wind_speed_10m,wind_direction_10m,visibility");
+    // The last hours of pressure give the barometric trend.
+    query.addQueryItem("hourly", "pressure_msl");
+    query.addQueryItem("past_hours", "3");
+    query.addQueryItem("forecast_hours", "1");
+    query.addQueryItem("daily", "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset");
+    query.addQueryItem("forecast_days", QString::number(kForecastDays));
+    query.addQueryItem("timezone", "auto");
+    if (!isMetric())
     {
-        if (!is5Day)
-            qWarning() << "LH_QtPlugin_Weather: XML ERROR (2Day Parser):" << xml_.lineNumber() << ": " << xml_.errorString();
-        else
-            qWarning() << "LH_QtPlugin_Weather: XML ERROR (5Day Parser):" << xml_.lineNumber() << ": " << xml_.errorString();
-        //http.abort();
-    } else {
-        if (!is5Day) weather_data.isNight = checkNight();
-
-        QString cityName = weather_data.location.city;
-        if(QString(weather_data.location.region).trimmed() != "")
-            cityName = cityName + QString(", %1").arg(weather_data.location.region);
-        if(QString(weather_data.location.country).trimmed() != "")
-            cityName = cityName + QString(", %1").arg(weather_data.location.country);
-
-        setup_city_-> setValue( cityName );
-
-        if (!is5Day && get5Day)
-            fetch5Day();
-        else
-            requestTranslation();
+        query.addQueryItem("temperature_unit", "fahrenheit");
+        query.addQueryItem("wind_speed_unit", "mph");
     }
+    url.setQuery(query);
+
+    QNetworkReply *reply = get(url);
+    forecastReply_ = reply;
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { forecastFinished(reply); });
+}
+
+void LH_QtPlugin_Weather::forecastFinished(QNetworkReply *reply)
+{
+    reply->deleteLater();
+    if (reply != forecastReply_)
+        return;
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        if (reply->error() != QNetworkReply::OperationCanceledError)
+            qWarning() << "LH_QtPlugin_Weather: forecast request failed:" << reply->errorString();
+        return;
+    }
+
+    QJsonParseError error;
+    const QJsonDocument doc = QJsonDocument::fromJson(reply->readAll(), &error);
+    if (!doc.isObject())
+    {
+        qWarning() << "LH_QtPlugin_Weather: invalid forecast data:" << error.errorString();
+        return;
+    }
+    parseForecast(doc.object());
+    publish();
+    qDebug() << "LH_QtPlugin_Weather: updated" << setup_city_->value() << weather_data.condition.text
+             << weather_data.condition.temp << "code" << weather_data.condition.code;
+}
+
+void LH_QtPlugin_Weather::parseForecast(const QJsonObject &json)
+{
+    const bool metric = isMetric();
+    const QJsonObject current = json.value("current").toObject();
+    const QJsonObject daily = json.value("daily").toObject();
+
+    weather_data.units.temperature = QString(QChar(0x00B0)) + (metric ? "C" : "F");
+    weather_data.units.distance = metric ? "km" : "mi";
+    weather_data.units.pressure = metric ? "mb" : "in";
+    weather_data.units.speed = metric ? "km/h" : "mph";
+
+    weather_data.isNight = current.value("is_day").toInt(1) == 0;
+
+    const Condition condition = wmoCondition(current.value("weather_code").toInt(-1));
+    weather_data.condition.code = QString::number(weather_data.isNight ? condition.nightCode : condition.dayCode);
+    weather_data.condition.text = condition.text;
+    weather_data.condition.temp = rounded(current.value("temperature_2m"));
+    const QDateTime observed = QDateTime::fromString(current.value("time").toString(), Qt::ISODate);
+    weather_data.condition.date = english().toString(observed, "ddd, d MMM yyyy h:mm ap").replace("AM", "am").replace("PM", "pm")
+            + " " + json.value("timezone_abbreviation").toString();
+
+    weather_data.wind.chill = rounded(current.value("apparent_temperature"));
+    weather_data.wind.direction = rounded(current.value("wind_direction_10m"));
+    weather_data.wind.speed = rounded(current.value("wind_speed_10m"));
+
+    weather_data.atmosphere.humidity = rounded(current.value("relative_humidity_2m"));
+    const QJsonValue visibility = current.value("visibility"); // metres
+    weather_data.atmosphere.visibility = visibility.isDouble()
+            ? QString::number(visibility.toDouble() / (metric ? 1000.0 : 1609.344), 'f', 1) : QString();
+    const QJsonValue pressure = current.value("pressure_msl"); // hPa
+    weather_data.atmosphere.pressure = pressure.isDouble()
+            ? (metric ? QString::number(pressure.toDouble(), 'f', 0)
+                      : QString::number(pressure.toDouble() * 0.0295300, 'f', 2)) : QString();
+
+    const QJsonArray pressures = json.value("hourly").toObject().value("pressure_msl").toArray();
+    weather_data.atmosphere.barometricReading = QString();
+    if (pressures.count() >= 2 && pressures.first().isDouble() && pressures.last().isDouble())
+    {
+        const double change = pressures.last().toDouble() - pressures.first().toDouble();
+        weather_data.atmosphere.barometricReading = change > 1.0 ? "Rising" : (change < -1.0 ? "Falling" : "Steady");
+    }
+
+    const QJsonArray days = daily.value("time").toArray();
+    weather_data.astronomy.sunrise = shortTime(daily.value("sunrise").toArray().at(0).toString());
+    weather_data.astronomy.sunset = shortTime(daily.value("sunset").toArray().at(0).toString());
+
+    weather_data.forecastDays = qMin(int(days.count()), kForecastDays);
+    for (int i = 0; i < kForecastDays; i++)
+    {
+        forecastData &forecast = weather_data.forecast[i];
+        const QDate date = QDate::fromString(days.at(i).toString(), Qt::ISODate);
+        if (i >= weather_data.forecastDays || !date.isValid())
+        {
+            setNoForecast(forecast);
+            continue;
+        }
+        const Condition dayCondition = wmoCondition(daily.value("weather_code").toArray().at(i).toInt(-1));
+        forecast.day = english().toString(date, "ddd");
+        forecast.date = english().toString(date, "d MMM yyyy");
+        switch (i)
+        {
+        case 0:
+            forecast.relativeDay = weather_data.isNight ? "Tonight" : "Today";
+            break;
+        case 1:
+            forecast.relativeDay = "Tomorrow";
+            break;
+        default:
+            forecast.relativeDay = translator.fullDateName(forecast.day);
+            break;
+        }
+        forecast.low = rounded(daily.value("temperature_2m_min").toArray().at(i));
+        forecast.high = rounded(daily.value("temperature_2m_max").toArray().at(i));
+        forecast.text = dayCondition.text;
+        forecast.code = QString::number(dayCondition.dayCode);
+    }
+
+    const QStringList coords = setup_coordinates_->value().split(',');
+    weather_data.url = coords.count() == 2
+            ? QString("https://open-meteo.com/en/docs?latitude=%1&longitude=%2").arg(coords.at(0), coords.at(1))
+            : QString();
 }
 
 void LH_QtPlugin_Weather::setNoForecast(forecastData &forecast)
@@ -524,122 +520,13 @@ void LH_QtPlugin_Weather::setNoForecast(forecastData &forecast)
     forecast.low  = "?";
     forecast.high = "?";
     forecast.text = "Unknown";
-    forecast.code = "3200";
+    forecast.code = QString::number(kUnknownCode);
 }
 
-void LH_QtPlugin_Weather::setForecast(QXmlStreamReader& xml_, forecastData& forecast, int relativeDay)
+void LH_QtPlugin_Weather::publish()
 {
-    if(debugForecast) qDebug() << "LH_QtPlugin_Weather: Adding forecast: " << getWeatherValue(xml_, "day") << getWeatherValue(xml_, "code");
-
-    forecast.day = getWeatherValue(xml_, "day");
-    switch (relativeDay)
-    {
-    case 0:
-        forecast.relativeDay = (!weather_data.isNight? "Today" : "Tonight");
-        break;
-    case 1:
-        forecast.relativeDay = "Tomorrow";
-        break;
-    default:
-        forecast.relativeDay = translator.fullDateName(forecast.day);
-        break;
-    }
-    forecast.date = getWeatherValue(xml_, "date");
-    forecast.low = getWeatherValue(xml_, "low");
-    forecast.high = getWeatherValue(xml_, "high");
-    forecast.text = getWeatherValue(xml_, "text");
-    forecast.code = getWeatherValue(xml_, "code");
-}
-
-void LH_QtPlugin_Weather::parseXmlWOEID()
-{
-    QString currentTag;
-    bool foundWOEID = false;
-    while (!xmlWOEID_.atEnd())
-    {
-        xmlWOEID_.readNext();
-        if (xmlWOEID_.isStartElement())
-        {
-            currentTag = xmlWOEID_.name().toString();
-        }
-        else if (xmlWOEID_.isEndElement())
-        {
-            //nothing
-        }
-        else if (xmlWOEID_.isCharacters() && !xmlWOEID_.isWhitespace())
-        {
-            if( currentTag == "woeid" && !foundWOEID) {
-                setup_yahoo_woeid_->setValue( xmlWOEID_.text().toString() );
-                setup_yahoo_5dayid_->setValue("");
-                foundWOEID = true;
-            }
-        }
-    }
-
-    if (xmlWOEID_.error() && xmlWOEID_.error() != QXmlStreamReader::PrematureEndOfDocumentError)
-    {
-        qWarning() << "LH_QtPlugin_Weather: XML ERROR (WOEID Parser):" << xmlWOEID_.lineNumber() << ": " << xmlWOEID_.errorString();
-        if(connectionId_WOEID!=NULL && connectionId_WOEID->isRunning())
-        {
-            connectionId_WOEID->abort();
-            connectionId_WOEID->deleteLater();
-            connectionId_WOEID = NULL;
-        }
-
-    }
-
-    if (!foundWOEID)
-    {
-        setup_city_->setValue("Location not recognised");
-        setup_yahoo_woeid_->setValue( "" );
-        setup_yahoo_5dayid_->setValue( "" );
-    } else {
-        if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: WOEID acquired: " << setup_yahoo_woeid_->value() << " BEGIN FETCH (2Day)";
-        fetch2Day();
-    }
-
-}
-
-QString LH_QtPlugin_Weather::getWeatherValue(QXmlStreamReader& xml_, QString attrName)
-{
-    return xml_.attributes().value(attrName).toString();
-}
-QString LH_QtPlugin_Weather::getWeatherValue(QXmlStreamReader& xml_, QString attrName, QString preText)
-{
-    return ( preText + xml_.attributes().value(attrName).toString() );
-}
-
-int LH_QtPlugin_Weather::toTime(QString time, bool isDateTime)
-{
-    if (isDateTime) {
-        QRegularExpression re = QRegularExpression("^\\w\\w\\w, [0-9]* \\w\\w\\w [0-9]* ([0-9]*:[0-9]* \\w\\w).*$");
-        QRegularExpressionMatch reMatch;
-        time = time.replace(re,"\\1");
-    }
-
-    QRegularExpression re = QRegularExpression("^([0-9]*):([0-9]*) (\\w\\w)$");
-    QRegularExpressionMatch reMatch;
-    if ((reMatch = re.match(time)).hasMatch()) {
-         int hour = reMatch.captured(1).toInt();
-         int minute = reMatch.captured(2).toInt();
-         if ( reMatch.captured(3) == "pm" && hour != 12 ) hour += 12;
-         else
-             if ( reMatch.captured(3) == "am" && hour == 12 ) hour -= 12;
-         return hour*100 + minute;
-    }
-
-    return 0;
-}
-
-bool LH_QtPlugin_Weather::checkNight()
-{
-    int dawnTime=toTime(weather_data.astronomy.sunrise, false);
-    int duskTime=toTime(weather_data.astronomy.sunset,false);
-    int currTime=toTime(weather_data.condition.date,true);
-
-    bool nightResult = currTime<dawnTime || currTime>duskTime;
-
-    return nightResult;
+    requestTranslation();
+    setup_json_weather_->setValue(weather_data.serialize());
 }
 
 void LH_QtPlugin_Weather::requestTranslation()
@@ -654,7 +541,7 @@ void LH_QtPlugin_Weather::requestTranslation()
     translator.addItem(&weather_data.condition.date, ttMonthName);
     translator.addItem(&weather_data.condition.date, ttDayName);
 
-    for(int i=0; i<5; i++)
+    for(int i=0; i<kForecastDays; i++)
     {
         translator.addItem(&weather_data.forecast[i].day, ttDayName);
         translator.addItem(&weather_data.forecast[i].relativeDay);
@@ -681,7 +568,7 @@ void LH_QtPlugin_Weather::selectLanguage()
     QString code = translator.languages.getCode(setup_languages_->valueText());
     setup_language_->setValue(code);
     translator.setTargetLanguage(code);
-    fetch2Day();
+    fetchForecast();
 }
 
 void LH_QtPlugin_Weather::setLanguage()

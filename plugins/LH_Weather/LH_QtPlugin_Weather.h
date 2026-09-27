@@ -28,84 +28,55 @@
 
 #include "LH_QtPlugin.h"
 
+#include <QDateTime>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-
+#include <QPointer>
 #include <QUrl>
-#include <QWidget>
-#include <QBuffer>
-#include <QXmlStreamReader>
-#include <QDateTime>
-#include <QSharedMemory>
 
 #include "LH_Qt_QString.h"
-#include "LH_Qt_QSlider.h"
-#include "LH_Qt_InputState.h"
 #include "LH_Qt_QStringList.h"
 #include "LH_Qt_int.h"
-#include "LH_Qt_QTextEdit.h"
 #include "LH_Qt_bool.h"
-
-#include <stdio.h>
 
 #include "LH_WeatherData.h"
 #include "SimpleTranslator.h"
 
+// Weather data comes from Open-Meteo (https://open-meteo.com), a free service
+// that needs no API key. Results are converted to the data model and weather
+// codes of the former Yahoo! Weather feed, so that existing layouts and image
+// maps keep working.
 class LH_QtPlugin_Weather : public LH_QtPlugin
 {
     Q_OBJECT
 
-    typedef void (LH_QtPlugin_Weather::*xmlParserFunc)();
-
     weatherData weather_data;
-
     QDateTime lastrefresh_;
-    static const bool get5Day = true;
 
-    static const bool debugHTTP = false;
-    static const bool debugMemory = false;
-    static const bool debugForecast = false;
-    static const bool debugSaveXML = false;
+    QNetworkAccessManager nam_;
+    QPointer<QNetworkReply> geocodeReply_;
+    QPointer<QNetworkReply> forecastReply_;
 
-    QNetworkReply* connectionId_WOEID;
-    QNetworkReply* connectionId_2Day;
-    QNetworkReply* connectionId_5Day;
+    // Location lookup state: the name being searched and the words used to
+    // pick the best match (country, region...).
+    QString geocodeName_;
+    QStringList geocodeHints_;
 
-    QNetworkAccessManager nam2Day;
-    QNetworkAccessManager nam5Day;
-    QNetworkAccessManager namWOEID;
-    QNetworkReply* fetchWeather(bool is5Day, QXmlStreamReader& xml_, QNetworkAccessManager& nam, QNetworkReply* currentReply);
-
-    QXmlStreamReader xml2Day_;
-    QXmlStreamReader xml5Day_;
-    QXmlStreamReader xmlWOEID_;
-
-    void parseXmlWeather(bool is5Day, QXmlStreamReader& xml_);
-    void parseXml2Day();
-    void parseXml5Day();
-    void parseXmlWOEID();
-
-    QDate toDate(QString str, bool isLong);
-
-    QString getWeatherValue(QXmlStreamReader& xml_, QString attrName);
-    QString getWeatherValue(QXmlStreamReader& xml_, QString attrName, QString preText);
-
+    QNetworkReply *get(const QUrl &url);
+    void geocode(const QString &name);
+    void geocodeFinished(QNetworkReply *reply);
+    void forecastFinished(QNetworkReply *reply);
+    bool isMetric() const;
+    void parseForecast(const QJsonObject &json);
     void setNoForecast(forecastData &forecast);
-    void setForecast(QXmlStreamReader &xml_, forecastData& forecast, int relativeDay);
-
+    void publish();
     void requestTranslation();
-    QString fullDateName(QString shortName);
-
-    void processResponse(QByteArray xmlData, QString name, QXmlStreamReader& xmlReader, xmlParserFunc xmlParser);
 
 protected:
     LH_Qt_QString *setup_location_name_;
-    LH_Qt_QString *setup_yahoo_woeid_;
-    LH_Qt_QString *setup_longlat_;
-    LH_Qt_QString *setup_yahoo_5dayid_;
+    LH_Qt_QString *setup_coordinates_;
     LH_Qt_QString *setup_city_;
-    LH_Qt_QSlider *setup_delay_;
-    LH_Qt_QStringList *setup_method_;
     LH_Qt_int *setup_refresh_;
     LH_Qt_QStringList *setup_units_type_;
 
@@ -116,31 +87,20 @@ protected:
     LH_Qt_QString *setup_json_weather_;
 
     SimpleTranslator translator;
+
 public:
     LH_QtPlugin_Weather();
 
     const char *userInit();
-    int notify(int code,void* param);
-
-    bool checkNight();
-    int toTime(QString time, bool isDateTime);
+    int notify(int code, void *param);
 
 public slots:
-    void fetch2Day();
-    void fetch2DayU();
-    void fetch5Day();
-    void fetchWOEID();
+    void lookupLocation();
+    void fetchForecast();
 
-    void finished2Day(QNetworkReply*);
-    void finished5Day(QNetworkReply*);
-    void finishedWOEID(QNetworkReply*);
-
-    //void openBrowser(QString,int,int);
-    void saveXMLResponse(QByteArray,QString);
     void updateLanguagesList();
     void selectLanguage();
     void setLanguage();
-
 };
 
 #endif // LH_QTPLUGIN_WEATHER_H

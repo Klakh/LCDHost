@@ -323,7 +323,7 @@ void LH_DataViewerConnector::mapFileChanged()
             QRegularExpressionMatch rxMatch;
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
+            QStringList items = fileContent.split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
 
             itemDefinitions_.clear();
             lists_.clear();
@@ -543,7 +543,7 @@ void LH_DataViewerConnector::sourceFileUpdated(const QString &path)
         case SOURCETYPE_TXT:
         case SOURCETYPE_INI:
             {
-                QStringList sourceLines = fileContent.split('\r',Qt::SkipEmptyParts);
+                QStringList sourceLines = fileContent.split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
 
                 if (isSingleWrite_ || sourceLines.count()>=completeCount_)
                 {
@@ -828,7 +828,7 @@ void LH_DataViewerConnector::languageFileChanged()
             QRegularExpression rxPre = QRegularExpression("^[\\n\\r ]*");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
+            QStringList items = fileContent.split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
 
             QString segmentName="";
             QString segment = "";

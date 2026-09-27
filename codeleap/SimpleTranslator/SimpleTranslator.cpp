@@ -197,7 +197,7 @@ void SimpleTranslator::loadCache(bool languageList, bool includeUntranslatedLang
         if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
             QTextStream out(&file);
-            QStringList cachedItems = out.readAll().split("\n", Qt::SkipEmptyParts);
+            QStringList cachedItems = out.readAll().split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
             file.close();
 
             for(int i=0; i<cachedItems.length(); i++)

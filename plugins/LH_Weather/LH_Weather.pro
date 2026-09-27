@@ -1,9 +1,8 @@
 TARGET = LH_Weather
 TEMPLATE = lib
-QT += network \
-    xml
+QT += network
 DEFINES += LH_WEATHER_LIBRARY
-DEFINES += VERSION=1.52
+DEFINES += VERSION=2.00
 CONFIG += cf translator json
 
 include(../Plugins.pri)

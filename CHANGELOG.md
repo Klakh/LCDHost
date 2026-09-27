@@ -14,8 +14,17 @@ Versions up to 0.0.38 were released by the original author; see the
 - Timers use `QElapsedTimer` and regular expressions use
   `QRegularExpression`.
 
+- Weather: data now comes from Open-Meteo (free, no API key) instead of the
+  defunct Yahoo! Weather API. Locations are looked up by name ("Paris,
+  France") or given as "latitude, longitude". Existing layouts and image
+  maps keep working: conditions are still reported with the former Yahoo!
+  weather codes.
+
 ### Fixed
 
+- Weather and DataViewer image maps and DataViewer data files failed to
+  load when they used LF line endings, which is the case of the bundled
+  layouts since 0.0.41.
 - Cursor plugin: adding a secondary cursor after "Secondary Cursor [n]"
   always produced "[2]".
 

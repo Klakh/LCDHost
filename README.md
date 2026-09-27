@@ -22,7 +22,7 @@ date. See the [roadmap](ROADMAP.md).
 
 - Layout editor with live preview, drag and drop, and per-element settings.
 - Plugins for text, dials, bars, graphs, images, decorations, cursors and
-  menus, logic, system monitoring (AIDA64, MSI Afterburner, CoreTemp, GPU-Z,
+  menus, logic, weather (from [Open-Meteo](https://open-meteo.com/)), system monitoring (AIDA64, MSI Afterburner, CoreTemp, GPU-Z,
   HWiNFO, SpeedFan), now playing (iTunes, Winamp, foobar2000, VLC, Spotify),
   TeamSpeak 3, web pages and RSS feeds.
 - Output drivers for Logitech 160×43 and 320×240 LCDs (direct HID/USB or

@@ -30,5 +30,11 @@ below lists what is bundled, where, and under which terms.
   project and its community. If you hold rights on an image and want it
   removed or credited differently, please open an issue.
 
-If you add a third-party component, add it to this table in the same pull
+## Online services
+
+| Service | Used by | Terms |
+|---|---|---|
+| [Open-Meteo](https://open-meteo.com/) forecast and geocoding APIs | `LH_Weather` | Free for non-commercial use (under 10,000 calls per day per user). Weather data by [Open-Meteo.com](https://open-meteo.com/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). |
+
+If you add a third-party component or service, add it here in the same pull
 request.

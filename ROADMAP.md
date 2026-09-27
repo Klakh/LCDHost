@@ -43,8 +43,8 @@ Legend: ✅ done · 🚧 in progress · ⬜ planned
 
 ## Phase 2: Repair broken features
 
-- ⬜ **Weather**: replace the defunct Yahoo Weather API with a free, keyless
-  service such as [Open-Meteo](https://open-meteo.com/).
+- ✅ **Weather**: replace the defunct Yahoo Weather API with
+  [Open-Meteo](https://open-meteo.com/) (free, no API key).
 - ⬜ **RSS and web pages** (WebKit plugin): follow every kind of HTTP
   redirect, report network errors, resolve relative URLs, and make page
   capture reliable with Qt WebEngine (animated and JavaScript-driven pages).

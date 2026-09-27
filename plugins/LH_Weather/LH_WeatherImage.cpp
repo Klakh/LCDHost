@@ -158,7 +158,7 @@ void LH_WeatherImage::fileChanged()
             QRegularExpression re = QRegularExpression(";.*$");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
+            QStringList items = fileContent.split(QRegularExpression("[\\r\\n]+"), Qt::SkipEmptyParts);
             imageDefinitions.clear();
             foreach (QString item, items)
             {
