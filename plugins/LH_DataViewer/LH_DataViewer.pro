@@ -6,7 +6,7 @@ DEFINES += LH_DATAVIEWER_LIBRARY
 DEFINES += VERSION=1.05
 CONFIG += cf
 
-win32:LIBS += -L"C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib" -lversion
+win32:LIBS += -lversion
 
 LIBS *= -lLH_Text -lLH_Bar -lLH_Dial
 

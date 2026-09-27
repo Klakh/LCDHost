@@ -99,11 +99,11 @@ LH_MonitoringObject::LH_MonitoringObject(LH_QtObject *object, monitoringDataMode
     setup_value_item_name_->setOrder(-4);
 
     setup_value_offset_ = new LH_Qt_bool(object,"Apply Offsets", true, LH_FLAG_HIDDEN);
-    setup_value_offset_->setHelp( "<p>Add any user defined offsets to the value (defined within RivaTuner).</p>");
+    setup_value_offset_->setHelp( "<p>Add any user defined offsets to the value (defined within MSI Afterburner).</p>");
     setup_value_offset_->setOrder(-4);
 
     setup_value_format_ = new LH_Qt_bool(object,"Use Formatted Data", false, LH_FLAG_HIDDEN);
-    setup_value_format_->setHelp( "<p>Relates to RivaTuner's \"raw data transforming mode\" or Afterburner's \"Formatted Data\".</p><p>(If you don't know what this is, leave it disabled and ignore it.)</p>");
+    setup_value_format_->setHelp( "<p>Relates to MSI Afterburner's \"Formatted Data\".</p><p>(If you don't know what this is, leave it disabled and ignore it.)</p>");
     setup_value_format_->setOrder(-4);
 
     (new LH_Qt_QString(object,("image-hr-data"), QString("<hr>"), LH_FLAG_NOSAVE_LINK | LH_FLAG_NOSAVE_DATA | LH_FLAG_NOSOURCE | LH_FLAG_NOSINK | LH_FLAG_HIDETITLE,lh_type_string_html ))->setOrder(-4);

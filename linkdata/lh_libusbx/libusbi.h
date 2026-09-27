@@ -915,6 +915,5 @@ extern const struct usbi_os_backend linux_usbfs_backend;
 extern const struct usbi_os_backend darwin_backend;
 extern const struct usbi_os_backend openbsd_backend;
 extern const struct usbi_os_backend windows_backend;
-extern const struct usbi_os_backend wince_backend;
 
 #endif

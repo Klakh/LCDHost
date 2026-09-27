@@ -41,7 +41,7 @@ bool LH_MonitoringSource_Afterburner::doUpdate()
         if (MAHMHeader)
         {
             if (MAHMHeader->dwSignature == 0xDEAD)
-                qDebug() << "LH_MonitoringSource_RivaTuner: Shared memory has been terminated; try again later.";
+                qDebug() << "LH_MonitoringSource_Afterburner: Shared memory has been terminated; try again later.";
             else
             {
                 QRegExp rx = QRegExp("([^0-9]*)([0-9]+)(.*)");

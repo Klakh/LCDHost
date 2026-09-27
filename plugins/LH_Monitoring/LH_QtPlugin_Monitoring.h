@@ -30,14 +30,9 @@
 
 #include "LH_MonitoringSource_Afterburner.h"
 #include "LH_MonitoringSource_Aida64.h"
-#include "LH_MonitoringSource_ATITrayTools.h"
 #include "LH_MonitoringSource_CoreTemp.h"
-#include "LH_MonitoringSource_Fraps.h"
 #include "LH_MonitoringSource_GPUZ.h"
 #include "LH_MonitoringSource_HWiNFO.h"
-#include "LH_MonitoringSource_HWMonitor.h"
-#include "LH_MonitoringSource_Logitech.h"
-#include "LH_MonitoringSource_RivaTuner.h"
 #include "LH_MonitoringSource_SpeedFan.h"
 
 

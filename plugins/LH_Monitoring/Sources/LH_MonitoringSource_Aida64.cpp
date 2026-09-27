@@ -35,12 +35,9 @@ bool LH_MonitoringSource_Aida64::doUpdate()
     bool resultVal = true;
 
     const char* mapnameAida64  = "AIDA64_SensorValues";
-    const char* mapnameEverest  = "EVEREST_SensorValues";
 
     // Create file mapping
     HANDLE filemap = (HANDLE)OpenFileMappingA(FILE_MAP_READ,0,mapnameAida64);
-    if(filemap == NULL)
-        filemap = (HANDLE)OpenFileMappingA(FILE_MAP_READ,0,mapnameEverest);
 
     setDataAvailable(filemap != NULL);
     if(dataAvailable())

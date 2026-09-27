@@ -26,14 +26,9 @@ const char *LH_QtPlugin_Monitoring::userInit()
     // dataSources = new LH_MonitoringSources(this);
     dataSources()->add(new LH_MonitoringSource_Aida64(this));
     dataSources()->add(new LH_MonitoringSource_Afterburner(this));
-    dataSources()->add(new LH_MonitoringSource_ATITrayTools(this));
     dataSources()->add(new LH_MonitoringSource_CoreTemp(this));
-    dataSources()->add(new LH_MonitoringSource_Fraps(this));
     dataSources()->add(new LH_MonitoringSource_GPUZ(this));
     dataSources()->add(new LH_MonitoringSource_HWiNFO(this));
-    dataSources()->add(new LH_MonitoringSource_HWMonitor(this));
-    dataSources()->add(new LH_MonitoringSource_Logitech(this));
-    dataSources()->add(new LH_MonitoringSource_RivaTuner(this));
     dataSources()->add(new LH_MonitoringSource_SpeedFan(this));
     // dataSources->userInit();
 
@@ -68,21 +63,12 @@ char __lcdhostplugin_xml[] =
 
 "<tr>"
 "<td style=\"padding-right:2px\"><img src=\":/images/apps/aida64.png\"/></td>"
-"<td width=\"100%\"><a href=\"http://http://www.aida64.com\">Aida64</a></td>"
+"<td width=\"100%\"><a href=\"https://www.aida64.com\">Aida64</a></td>"
 "<td align='right'>(Commercial)</td>"
 "</tr>"
 "<tr>"
 "<td colspan='3'>Aida64 monitors a very large number of system statistics as well as the computer's voltages, fan speeds and temperatures in computers equipped with monitoring chips.<br /><br />"
 "<i>N.B. This plugin extracts the data from Aida64 via Shared Memory (make sure this option is enabled in Preferences > Hardware Monitoring > External Applications).</i><hr/></td>"
-"</tr>"
-
-"<tr>"
-"<td style=\"padding-right:2px\"><img src=\":/images/apps/atitray.png\"/></td>"
-"<td width=\"100%\"><a href=\"http://www.alcpu.com/ATITrayTools/\">ATITrayTools</a></td>"
-"<td align='right'>(Free)</td>"
-"</tr>"
-"<tr>"
-"<td colspan='3'>ATITrayTools monitors various sensors in ATI graphics cards.<hr/></td>"
 "</tr>"
 
 "<tr>"
@@ -92,15 +78,6 @@ char __lcdhostplugin_xml[] =
 "</tr>"
 "<tr>"
 "<td colspan='3'>CoreTemp monitors a computer's temperature sensors in computers equipped with monitoring chips, as well as things like CPU and FSB speeds, etc.<hr/></td>"
-"</tr>"
-
-"<tr>"
-"<td style=\"padding-right:2px\"><img src=\":/images/apps/fraps.png\"/></td>"
-"<td width=\"100%\"><a href=\"http://www.fraps.com/\">Fraps</a></td>"
-"<td align='right'>(Free)</td>"
-"</tr>"
-"<tr>"
-"<td colspan='3'>The main use of Fraps is to acquire the current \"Frames Per Second\". It is primarily of use within games, but can be used in windows (check the setting to monitor WDM in Fraps).<hr/></td>"
 "</tr>"
 
 "<tr>"
@@ -122,39 +99,12 @@ char __lcdhostplugin_xml[] =
 "</tr>"
 
 "<tr>"
-"<td style=\"padding-right:2px\"><img src=\":/images/apps/HWMonitor.png\"/><img src=\":/images/apps/HwMonTray.png\"/></td>"
-"<td width=\"100%\"><a href=\"http://www.hwinfo.com/\">HWMonitor</a> with <a href=\"http://blog.orbmu2k.de/tools/hardware-monitor-gadget-host\">HWMonTray</a></td>"
-"<td align='right'>(Free)</td>"
-"</tr>"
-"<tr>"
-"<td colspan='3'>HWMonitor monitors graphics cards, motherboard sensors and disk drives. <i>However</i> it does not natively support sharing it's data. To solve this download HWMonTray aka \"HWMonitor GadgetHost\", and run HWMonTray which will then launch HWMonitor and make its data available to LCDHost.<hr/></td>"
-"</tr>"
-
-"<tr>"
-"<td style=\"padding-right:2px\"><img src=\":/images/apps/Logitech.png\"/></td>"
-"<td width=\"100%\"><a href=\"http://forum.linkdata.se/lcdhost_plugins/windows_gadget_logitech_wireless_mouse_battery_monitoring_277.0.html/\">Logitech Mouse Battery Monitor</a></td>"
-"<td align='right'>(Free)</td>"
-"</tr>"
-"<tr>"
-"<td colspan='3'>Not really an application, but an edited Wireless Mouse Battery monitoring gadget that exposes the battery level to LCDHost.<hr/></td>"
-"</tr>"
-
-"<tr>"
 "<td style=\"padding-right:2px\"><img src=\":/images/apps/MSIAfterburner.png\"/></td>"
 "<td width=\"100%\"><a href=\"http://event.msi.com/vga/afterburner/\">MSI Afterburner</a></td>"
 "<td align='right'>(Free)</td>"
 "</tr>"
 "<tr>"
 "<td colspan='3'>MSI Afterburner monitors a the various sensors in MSI graphics cards.<hr/></td>"
-"</tr>"
-
-"<tr>"
-"<td style=\"padding-right:2px\"><img src=\":/images/apps/RivaTuner.png\"/></td>"
-"<td width=\"100%\"><a href=\"www.guru3d.com/index.php?page=rivatuner/\">RivaTuner</a></td>"
-"<td align='right'>(Free)</td>"
-"</tr>"
-"<tr>"
-"<td colspan='3'>RivaTuner monitors a the various sensors in NVIDIA graphics cards.<hr/></td>"
 "</tr>"
 
 "<tr>"

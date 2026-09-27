@@ -32,8 +32,3 @@ HEADERS += \
     LH_TextNumber.h
 
 
-# RSS moved to WebKit
-# QT += network xml
-#    LH_TextRSS.cpp \
-#    LH_TextRSS.h \
-

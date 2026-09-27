@@ -18,7 +18,7 @@ include(../../3rdParty/taglib/taglib.pri)
 # We don't want warnings from 3rd party C code
 QMAKE_CFLAGS_WARN_ON = -w
 
-LIBS += -L"C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib" -lwininet -lshell32 -lole32 -loleaut32 -luuid -ladvapi32
+LIBS += -lwininet -lshell32 -lole32 -loleaut32 -luuid -ladvapi32
 
 INCLUDEPATH += \
     SDKs \
@@ -38,7 +38,6 @@ SOURCES += \
     Players/PlayerFoobar.cpp \
     Players/PlayerVLC.cpp \
     Players/PlayerSpotify.cpp \
-    Helpers/Lyrics.cpp \
     Helpers/Internet.cpp \
     Helpers/Cover.cpp \
     Objects/LH_NowPlayingText.cpp \
@@ -59,7 +58,6 @@ HEADERS += \
     Players/PlayerFoobar.h \
     Players/PlayerVLC.h \
     Players/PlayerSpotify.h \
-    Helpers/Lyrics.h \
     Helpers/Internet.h \
     Helpers/Cover.h \
     Objects/LH_NowPlayingText.h \

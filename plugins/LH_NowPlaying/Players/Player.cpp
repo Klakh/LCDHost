@@ -17,7 +17,6 @@
 */
 
 #include "Player.h"
-#include "Lyrics.h"
 #include <QDebug>
 #include <QFile>
 
@@ -41,8 +40,7 @@ CPlayer::CPlayer() :
     m_Shuffle(false),
     m_Repeat(false),
     m_artworkCache(0),
-    m_PlayerName(),
-    m_InternetThread(0)
+    m_PlayerName()
 {
 	// Get temporary file for cover art
 	WCHAR buffer[MAX_PATH];
@@ -113,11 +111,6 @@ void CPlayer::replace_token(QString &str, QString token, uint seconds, uint tota
 CPlayer::~CPlayer()
 {
 	DeleteFile(m_TempCoverPath.c_str());
-
-	if (m_InternetThread)
-	{
-		TerminateThread(m_InternetThread, 0);
-	}
 }
 
 /*
@@ -204,69 +197,13 @@ void CPlayer::FindCover()
 /*
 ** FindLyrics
 **
-** Default implementation for getting lyrics.
+** No online lyrics source is available any more (LyricWiki, LyrDB and
+** Letras are gone), so lyrics are left empty.
 **
 */
 void CPlayer::FindLyrics()
 {
-#ifdef USEINTERNET
-        if (!m_InternetThread)
-	{
-		m_Lyrics.clear();
-
-		unsigned int id;
-		HANDLE thread = (HANDLE)_beginthreadex(NULL, 0, LyricsThreadProc, this, 0, &id);
-		if (thread)
-		{
-			m_InternetThread = thread;
-		}
-		else
-		{
-                        qDebug() << "NowPlaying.dll: Failed to start lyrics thread";
-		}
-	}
-#endif
-}
-
-/*
-** LyricsThreadProc
-**
-** Thread to download lyrics.
-**
-*/
-unsigned __stdcall CPlayer::LyricsThreadProc(void* pParam)
-{
-#ifdef USEINTERNET
-        CPlayer* player = (CPlayer*)pParam;
-
-	std::wstring lyrics;
-	bool found;
-
-	while (true)
-	{
-                UINT beforeCount = player->GetTrackCount();
-		found = CLyrics::GetFromInternet(player->m_Artist, player->m_Title, lyrics);
-		UINT afterCount = player->GetTrackCount();
-
-		if (beforeCount == afterCount)
-		{
-			// We're on the same track
-			break;
-		}
-
-		// Track changed, try again
-	}
-
-	if (found)
-	{
-		player->m_Lyrics = lyrics;
-	}
-
-	CloseHandle(player->m_InternetThread);
-	player->m_InternetThread = NULL;
-
-	return 0;
-#endif
+	m_Lyrics.clear();
 }
 
 /*

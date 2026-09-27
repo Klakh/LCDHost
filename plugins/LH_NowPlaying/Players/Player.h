@@ -40,7 +40,6 @@
 
 //#include "Cover.h"
 //#include "Internet.h"
-//#include "Lyrics.h"
 
 struct ArtworkCache
 {
@@ -159,9 +158,7 @@ protected:
     QString m_PlayerName;
 
 private:
-	static unsigned __stdcall LyricsThreadProc(void* pParam);
 
-	HANDLE m_InternetThread;
 };
 
 #endif
