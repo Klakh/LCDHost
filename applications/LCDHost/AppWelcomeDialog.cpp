@@ -44,7 +44,7 @@ AppWelcomeDialog::AppWelcomeDialog(QWidget *parent) :
             "<html><head></head><body>"
             "<p align=\"center\"><h2>Thank you for using LCDHost!</h2></p>"
             "<p align=\"justify\">LCDHost is free software. If you need help or find a bug, "
-            "please open an issue on <a href=\"https://github.com/LokLakh-s/LCDHost\">GitHub</a>.</p></body></html>";
+            "please open an issue on <a href=\"https://github.com/LokLakh-s/LCDHost-Revival\">GitHub</a>.</p></body></html>";
 
     QFile whatsnew(":/lcdhost/whatsnew.html");
     if( whatsnew.open(QIODevice::ReadOnly) )

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Check the [roadmap](https://github.com/LokLakh-s/LCDHost/blob/master/ROADMAP.md)
+        Check the [roadmap](https://github.com/LokLakh-s/LCDHost-Revival/blob/master/ROADMAP.md)
         and existing issues first: your idea may already be planned.
   - type: textarea
     id: problem

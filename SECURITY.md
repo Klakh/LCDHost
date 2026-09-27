@@ -10,7 +10,7 @@ and are available in the next CI build.
 Please **do not open a public issue** for security problems.
 
 Report them privately through GitHub:
-[Security → Report a vulnerability](https://github.com/LokLakh-s/LCDHost/security/advisories/new).
+[Security → Report a vulnerability](https://github.com/LokLakh-s/LCDHost-Revival/security/advisories/new).
 Include a description of the problem, the affected version or commit, and
 steps to reproduce if you have them.
 

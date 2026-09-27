@@ -1,6 +1,6 @@
-# LCDHost
+# LCDHost Revival
 
-[![build](https://github.com/LokLakh-s/LCDHost/actions/workflows/build.yml/badge.svg)](https://github.com/LokLakh-s/LCDHost/actions/workflows/build.yml)
+[![build](https://github.com/LokLakh-s/LCDHost-Revival/actions/workflows/build.yml/badge.svg)](https://github.com/LokLakh-s/LCDHost-Revival/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](COPYING)
 
 LCDHost is a compositing plugin manager for secondary displays. It renders
@@ -10,6 +10,7 @@ them to small screens, originally the LCDs of Logitech G-series keyboards
 
 This repository revives the project, which its original author
 [Johan Lindh](https://github.com/linkdata/LCDHost) stopped maintaining in 2016.
+The application itself is still called LCDHost.
 The goal is to keep existing layouts working while bringing the code up to
 date. See the [roadmap](ROADMAP.md).
 
@@ -32,7 +33,7 @@ date. See the [roadmap](ROADMAP.md).
 
 There is no release yet. Every build of `master` produces ready-to-run
 folders for Windows x64 and Linux x64: open the latest successful
-[build run](https://github.com/LokLakh-s/LCDHost/actions/workflows/build.yml)
+[build run](https://github.com/LokLakh-s/LCDHost-Revival/actions/workflows/build.yml)
 and download `LCDHost-windows-x64` or `LCDHost-linux-x64`.
 
 On first start:

@@ -8,6 +8,13 @@ Versions up to 0.0.38 were released by the original author; see the
 
 ## [Unreleased]
 
+## [0.0.42] - 2026-09-27
+
+### Changed
+
+- The repository moved to [LokLakh-s/LCDHost-Revival](https://github.com/LokLakh-s/LCDHost-Revival);
+  links in the application and documentation point to it.
+
 ## [0.0.41] - 2026-09-27
 
 ### Removed
@@ -57,7 +64,8 @@ Versions up to 0.0.38 were released by the original author; see the
 - Plugin load failures are logged.
 - Build instructions, headless smoke test and Linux CI.
 
-[Unreleased]: https://github.com/LokLakh-s/LCDHost/compare/v0.0.41...HEAD
-[0.0.41]: https://github.com/LokLakh-s/LCDHost/releases/tag/v0.0.41
-[0.0.40]: https://github.com/LokLakh-s/LCDHost/releases/tag/v0.0.40
-[0.0.39]: https://github.com/LokLakh-s/LCDHost/releases/tag/v0.0.39
+[Unreleased]: https://github.com/LokLakh-s/LCDHost-Revival/compare/v0.0.42...HEAD
+[0.0.42]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.42
+[0.0.41]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.41
+[0.0.40]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.40
+[0.0.39]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.39

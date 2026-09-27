@@ -12,7 +12,7 @@ By participating you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
   keyboard. If you own a G13, G15, G510, G19 or Z10, telling us what works and
   what does not is one of the most useful contributions.
 - **Report bugs** and **suggest features** through
-  [issues](https://github.com/LokLakh-s/LCDHost/issues/new/choose).
+  [issues](https://github.com/LokLakh-s/LCDHost-Revival/issues/new/choose).
 - **Pick an item from the [roadmap](ROADMAP.md)**, or an issue labelled
   `good first issue` or `help wanted`.
 - **Improve the documentation.**
