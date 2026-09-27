@@ -37,8 +37,8 @@ AppAboutDialog::AppAboutDialog( QWidget *parent, Qt::WindowFlags f ) : QDialog( 
                 "xxx"
 #endif
                "%2) changeset %3:%4<br>"
-               "Copyright &copy;2009-2016 <a href=\"http://www.linkdata.se/\">Link Data Stockholm</a><br>"
-               "Please visit the <a href=\"http://www.linkdata.se/forum/lcdhost\">LCDHost forum</a> if you need assistance.<br>"
+               "Copyright &copy;2009-2016 Johan Lindh (Link Data Stockholm) and contributors<br>"
+               "Source code, help and bug reports: <a href=\"https://github.com/LokLakh-s/LCDHost\">github.com/LokLakh-s/LCDHost</a><br>"
                )
             .arg(VERSION)
             .arg(QSysInfo::WordSize)

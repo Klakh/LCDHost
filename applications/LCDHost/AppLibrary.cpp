@@ -461,11 +461,6 @@ void AppLibrary::bindClass( AppClass *app_class )
 }
 
 
-void AppLibrary::requestWebUpdate()
-{
-    if( mainWindow ) mainWindow->webUpdatePlugin( objectName() );
-}
-
 bool AppLibrary::event(QEvent *event)
 {
     if( AppObject::event(event) ) return true;

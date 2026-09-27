@@ -28,7 +28,6 @@
 #include "AppClassTree.h"
 #include "AppGraphicsScene.h"
 #include "EventRawInput.h"
-#include "AppVersionCache.h"
 
 #ifdef QT_OPENGL_LIB
 #include "AppGLWidget.h"
@@ -82,16 +81,9 @@ class MainWindow : public QMainWindow
     int sceneChanged_;
     int loglines_;
     AppId selectedinstance_;
-    QNetworkAccessManager nam_;
     bool need_instance_refresh_;
     QString mousekey_;
     int rendermethod_;
-    QMap<QString,QByteArray> pubkeys_;
-    AppVersionCache vercache_;
-    QDateTime lastwebcheck_;
-    int webcheckinterval_; // in hours
-    bool webautoupdate_;
-    bool webautocheck_;
     QSet<QString> fixmeLogs_;
     AppObject* plugins_;
     enum State {
@@ -174,8 +166,6 @@ public:
     QStandardItemModel *refListSizeModel() { return refListSizeModel_; }
     QString previewClassId() const;
     AppInstance *previewInstance();
-    QNetworkAccessManager& getNAM() { return nam_; }
-    AppVersionCache& versionCache() { return vercache_; }
 
     void openLayout( QString str );
     void saveLayout();
@@ -195,18 +185,7 @@ public:
 
     void log(QDateTime, QtMsgType, QString);
 
-    void webUpdateCompare();
-    void webUpdatePlugin( QString simplename );
-    void webUpdatePluginData( AppLibrary *app_lib, QNetworkReply *reply );
 
-    bool webAutoCheck() const { return webautocheck_; }
-    void setWebAutoCheck( bool b ) { webautocheck_ = b; }
-    bool webAutoUpdatePlugins() const { return webautoupdate_; }
-    void setWebAutoUpdatePlugins( bool b ) { webautoupdate_ = b; }
-    int webCheckInterval() const { return webcheckinterval_; }
-    void setWebCheckInterval( int hrs ) { webcheckinterval_ = ( (hrs > 0) ? hrs : 1 ); }
-    QDateTime webLastCheckTime() const { return lastwebcheck_; }
-    QString webUserAgent() const;
 
     AppObject* pluginParent() const { return plugins_; }
     QList<AppLibrary*> plugins() const;
@@ -234,11 +213,6 @@ public slots:
     void stateChanged(AppId);
     void openDebugDialog();
     void rawInput( QByteArray, QString, int, int, int );
-    void webUpdateCheck();
-    void netGotPubkey();
-    void netGotPlugin();
-    void netGotVersion();
-    void netGotHeadReply();
 
 signals:
     void libraryStateChanged(AppId);
@@ -292,7 +266,6 @@ private slots:
     void on_instanceTreeView_selectionChange( const QItemSelection & selected, const QItemSelection & deselected );
     void on_LoadButton_clicked();
     void on_actionExit_triggered();
-    void on_actionUpdates_triggered();
     void on_checkForPluginsButton_clicked();
     void on_actionSystrayRestore_triggered();
     void on_actionSystrayQuit_triggered();

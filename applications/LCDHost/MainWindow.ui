@@ -834,13 +834,6 @@ p, li { white-space: pre-wrap; }
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="updatePluginButton">
-                   <property name="text">
-                    <string>Update</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QLabel" name="Logo">
                    <property name="text">
                     <string/>
@@ -2306,7 +2299,6 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionScreenshot"/>
     <addaction name="actionClean_layout"/>
-    <addaction name="actionUpdates"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -2396,11 +2388,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionClean_layout">
    <property name="text">
     <string>Clean layout</string>
-   </property>
-  </action>
-  <action name="actionUpdates">
-   <property name="text">
-    <string>Updates</string>
    </property>
   </action>
   <action name="actionSystrayRestore">

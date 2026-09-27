@@ -91,8 +91,6 @@ void AppPluginItemDelegate::paint ( QPainter * painter, const QStyleOptionViewIt
     QString title = index.data(Qt::DisplayRole).toString();
     QString description = index.data(Qt::UserRole + 1).toString();
     QString version = index.data(Qt::UserRole + 2).toString();
-    int my_rev = index.data(Qt::UserRole + 3 ).toInt();
-    int web_rev = index.data(Qt::UserRole + 4).toInt();
     QString error = index.data(Qt::UserRole + 5).toString();
 
     if( !ic.isNull() )
@@ -105,13 +103,7 @@ void AppPluginItemDelegate::paint ( QPainter * painter, const QStyleOptionViewIt
     // VERSION
     r = option.rect.adjusted(28, option.rect.height()/7, -10, 0);
     painter->setFont( QFont() );
-    if( web_rev < 1 ) painter->setPen( Qt::lightGray );
-    else
-    {
-        if( web_rev == my_rev ) painter->setPen( Qt::green );
-        else if( web_rev > my_rev ) painter->setPen( Qt::red );
-        else painter->setPen( Qt::blue );
-    }
+    painter->setPen( Qt::lightGray );
     QRect vr;
     painter->drawText(r.left(), r.top(), r.width(), r.height(),
                       Qt::AlignRight, version, &vr);

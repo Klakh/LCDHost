@@ -32,7 +32,6 @@
 #include "AppObject.h"
 #include "lh_plugin.h"
 #include "PluginInfo.h"
-#include "AppPluginVersion.h"
 
 #if LH_USE_THREADS
 # include <QMutex>
@@ -111,7 +110,6 @@ public:
 
     int revision() const { return pi_.revision(); }
     QString version() const { return pi_.version(); }
-    QUrl versionURL() const { return AppPluginVersion::makeUrl( pi_.versionurl(), objectName(), pi_.revision() ); }
 
     QString error() const { return error_; }
 
@@ -177,7 +175,6 @@ signals:
 
 public slots:
     void layoutChanged( QString dir, QString name );
-    void requestWebUpdate();
 #if LH_USE_THREADS
     void threadFinished();
 #endif

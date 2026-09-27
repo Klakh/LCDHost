@@ -47,9 +47,6 @@
 #include <QCryptographicHash>
 #include <QDirIterator>
 
-#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
-#include "../miniz/miniz.c"
-
 #include "LCDHost.h"
 #include "../lh_logger/LH_Logger.h"
 #include "AppState.h"
@@ -79,14 +76,11 @@
 #include "wow64.h"
 #include "AppAboutDialog.h"
 #include "AppWelcomeDialog.h"
-#include "AppUpdateDialog.h"
-#include "AppDownloadUpdateDialog.h"
 #include "PluginInfo.h"
 #include "AppRawInputDialog.h"
 #include "AppGLContext.h"
 #include "AppGLWidget.h"
 #include "AppPluginItemDelegate.h"
-#include "AppSendVersionInfo.h"
 #include "EventAppStartup.h"
 
 #include <QDesktopWidget>
@@ -121,9 +115,6 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags)
   , loglines_(0)
   , need_instance_refresh_(false)
   , rendermethod_(0)
-  , webcheckinterval_(24)
-  , webautoupdate_(true)
-  , webautocheck_(true)
   , plugins_(0)
   , state_(kStateInit)
   , app_library_waited_(0)
@@ -289,11 +280,6 @@ void MainWindow::loadSettings()
   settings.endGroup(); // windows
 
   settings.beginGroup("settings");
-  webautocheck_ = settings.value("webautocheck", true).toBool();
-  webautoupdate_ = settings.value("webautoupdate", true).toBool();
-  webcheckinterval_ = settings.value("webcheckinterval", 24).toInt();
-  if( webcheckinterval_ < 6 ) webcheckinterval_ = 6;
-  if( webcheckinterval_ > 99 ) webcheckinterval_ = 99;
   settings.endGroup();
 
   dontShowWelcome_ = settings.value("dontShowWelcome", false).toBool();
@@ -355,9 +341,6 @@ void MainWindow::saveSettings()
   settings.endGroup(); // windows
 
   settings.beginGroup("settings");
-  settings.setValue("webautocheck",webautocheck_);
-  settings.setValue("webautoupdate",webautoupdate_);
-  settings.setValue("webcheckinterval",webcheckinterval_);
   settings.endGroup();
 
   settings.sync();
@@ -383,7 +366,6 @@ void MainWindow::init()
   plugins_->setObjectName("plugins");
 
   programStart_ = QDateTime::currentDateTime();
-  vercache_.add("LCDHost", AppPluginVersion::makeUrl("http://www.linkdata.se/lcdhost/version.php?arch=$ARCH") );
 
   // connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(term()));
 
@@ -993,10 +975,6 @@ void MainWindow::refreshPluginList()
     anItem->setData( Qt::UserRole+2, app_library->version() );
     anItem->setData( Qt::UserRole+3, app_library->revision() );
 
-    AppPluginVersion apv = vercache_.get(app_library->objectName());
-    if( apv.isUsable() ) anItem->setData( Qt::UserRole+4, apv.revision() );
-    else anItem->setData( Qt::UserRole+4, 0 );
-
     anItem->setData( Qt::UserRole+5, app_library->error() );
     ui->pluginList->addItem( anItem );
   }
@@ -1024,8 +1002,6 @@ void MainWindow::refreshPluginDetails()
 
   if( app_library == NULL )
   {
-    ui->updatePluginButton->disconnect();
-    ui->updatePluginButton->hide();
     ui->NameValue->clear();
     ui->VersionValue->clear();
     ui->FileValue->clear();
@@ -1038,22 +1014,6 @@ void MainWindow::refreshPluginDetails()
     if( ui->pluginSettingsArea && ui->pluginSettingsArea->widget() )
       delete ui->pluginSettingsArea->takeWidget();
     return;
-  }
-
-  AppPluginVersion apv = vercache_.get( app_library->objectName() );
-
-  if( apv.isUsable() && apv.revision() != app_library->revision() )
-  {
-    if( apv.revision() > app_library->revision() ) ui->updatePluginButton->setText("Update");
-    else ui->updatePluginButton->setText(tr("Downgrade to revision %1").arg(apv.revision()));
-    ui->updatePluginButton->disconnect();
-    ui->updatePluginButton->show();
-    connect( ui->updatePluginButton, SIGNAL(clicked()), app_library, SLOT(requestWebUpdate()) );
-  }
-  else
-  {
-    ui->updatePluginButton->disconnect();
-    ui->updatePluginButton->hide();
   }
 
   ui->pluginSettingsArea->setWidget( app_library->setupBuildUI( ui->pluginSettingsArea ) );
@@ -2165,14 +2125,6 @@ void MainWindow::setNextTimer()
     ui->labelRPS->setToolTip( tr("Renders per second") );
     pps = 0;
 
-    if( webautocheck_ && (
-          (lastwebcheck_.isNull() || (lastwebcheck_.addSecs(webcheckinterval_*60*60) < QDateTime::currentDateTime())) )
-        )
-    {
-      lastwebcheck_ = QDateTime::currentDateTime();
-      webUpdateCheck();
-    }
-
     emit onceASecond();
   }
 
@@ -2862,250 +2814,6 @@ void MainWindow::on_actionClean_layout_triggered()
 }
 
 // Update or install a plugin from web
-void MainWindow::webUpdatePlugin( QString id )
-{    
-  AppPluginVersion apv;
-  apv = vercache_.get(id);
-  if( apv.isValid() )
-  {
-    qDebug() << "Downloading" << apv.downloadurl().toString();
-    QNetworkReply *r = nam_.get( QNetworkRequest( apv.downloadurl() ) );
-    connect( r, SIGNAL(finished()), this, SLOT(netGotPlugin()) );
-  }
-}
-
-
-void MainWindow::webUpdatePluginData( AppLibrary *app_lib, QNetworkReply *reply )
-{
-  QDir datadir( AppState::instance()->dir_data() );
-  QString disp = QString::fromLatin1( reply->rawHeader("Content-Disposition") ).trimmed();
-  qDebug() << "Updating" << app_lib->objectName() << "using" << disp;
-
-  if( !disp.contains("filename=\"") )
-  {
-    qWarning() << "Download has invalid Content-Disposition:" << disp;
-    return;
-  }
-
-  QString zipfilename = disp.mid( disp.indexOf("filename=\"")+10 );
-  if( zipfilename.endsWith('\"') ) zipfilename.chop(1);
-  if( !zipfilename.endsWith(".zip",Qt::CaseInsensitive) )
-  {
-    qWarning() << "Download is not a zipfile:" << zipfilename;
-    return;
-  }
-
-  datadir.mkdir("downloads");
-
-  // extract filename
-  zipfilename.prepend(AppState::instance()->dir_data() + "downloads/");
-  QByteArray zipname_array = zipfilename.toLocal8Bit();
-  QFile zipfile( zipfilename );
-  if( zipfile.open(QIODevice::WriteOnly|QIODevice::Truncate) )
-  {
-    zipfile.write( reply->readAll() );
-    zipfile.close();
-  }
-
-  mz_zip_archive zip_archive;
-  memset(&zip_archive, 0, sizeof(zip_archive));
-  if(mz_zip_reader_init_file(
-       &zip_archive,
-       zipname_array.constData(),
-       MZ_ZIP_FLAG_CASE_SENSITIVE | MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
-  {
-    mz_uint file_count = mz_zip_reader_get_num_files(&zip_archive);
-    for(mz_uint file_index = 0; file_index < file_count; ++ file_index)
-    {
-      mz_zip_archive_file_stat file_stat;
-      if(mz_zip_reader_file_stat(&zip_archive, file_index, &file_stat))
-      {
-        QString outfilename(QDir::fromNativeSeparators(QString::fromLocal8Bit(file_stat.m_filename)));
-        outfilename.prepend(AppState::instance()->dir_plugins());
-        QFileInfo outfileinfo(outfilename);
-        if(outfileinfo == app_lib->fileInfo())
-        {
-          QString backupfilename = outfilename + QLatin1String(".orig");
-          if(outfileinfo.isFile() && outfileinfo.isWritable())
-          {
-            app_lib->abort();
-            if(! QFile::exists(backupfilename) || QFile::remove(backupfilename))
-            {
-              if(! QFile::rename(outfilename, backupfilename))
-                qWarning() << "Failed to rename" << outfilename << "to" << backupfilename;
-            }
-            else
-              qWarning() << "Failed to remove old backup" << backupfilename;
-            if(! mz_zip_reader_extract_to_file(
-                 &zip_archive,
-                 file_index,
-                 outfilename.toLocal8Bit().constData(),
-                 MZ_ZIP_FLAG_CASE_SENSITIVE))
-            {
-              qCritical() << "Failed to extract" << outfilename;
-              if(QFile::exists(outfilename))
-                QFile::remove(outfilename);
-              if(QFile::exists(backupfilename) && QFile::rename(backupfilename, outfilename))
-                qDebug() << "Restored backup of" << outfilename << "from" << backupfilename;
-              else
-                qCritical() << "Failed to restore backup of" << outfilename << "from" << backupfilename;
-            }
-            QString errmsg = app_lib->pi().read();
-            if( errmsg.isEmpty() && app_lib->pi().isUsable() )
-              QApplication::postEvent( this, new EventLibraryStart( app_lib->id() ) );
-            else
-              qWarning() << "Won't start new version:" << errmsg << (app_lib->isUsable()?"":"(unusable version)");
-          }
-          else
-            qWarning() << outfilename << "is not a writable file";
-        }
-        else
-          qWarning() << outfileinfo.filePath() << "does not refer to" << app_lib->fileInfo().filePath();
-      }
-    }
-    mz_zip_reader_end(&zip_archive);
-  }
-
-  return;
-}
-
-void MainWindow::webUpdateCheck()
-{
-  foreach( QUrl url, vercache_.staleUrls() )
-  {
-    vercache_.startedQuery(url);
-    QNetworkRequest req(url);
-    req.setRawHeader(QString("User-Agent").toLatin1(),webUserAgent().toLatin1());
-    connect( nam_.get(req), SIGNAL(finished()), this, SLOT(netGotVersion()) );
-  }
-}
-
-void MainWindow::webUpdateCompare()
-{
-  AppPluginVersion apv;
-  if( webautoupdate_ )
-  {
-    foreach( AppLibrary* app_lib, plugins() )
-    {
-      apv = vercache_.get( app_lib->objectName() );
-      if( apv.isUsable() && apv.revision() > app_lib->revision() )
-        webUpdatePlugin( app_lib->objectName() );
-    }
-  }
-  apv = vercache_.get( "LCDHost" );
-  if( apv.revision() > AppVersionToRevision(VERSION) && !apv.downloadurl().isEmpty() )
-  {
-    qDebug() << "LCDHost" << AppRevisionToVersion(apv.revision()) << AppPluginVersion::defaultArch() << "announced at" << apv.downloadurl().toString();
-    connect( nam_.head( QNetworkRequest(apv.downloadurl())), SIGNAL(finished()), this, SLOT(netGotHeadReply()) );
-  }
-}
-
-void MainWindow::on_actionUpdates_triggered()
-{
-  new AppUpdateDialog(this);
-}
-
-void MainWindow::netGotPubkey()
-{
-  QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-  if( reply )
-  {
-    if( reply->error() != QNetworkReply::NoError )
-    {
-      qWarning() << "Network error:" << reply->url().toString() << reply->errorString();
-      return;
-    }
-
-    if( pubkeys_.contains(reply->url().toString()) )
-    {
-      QByteArray pubkey = reply->readAll();
-      qDebug() << "Got public key from" << reply->url().toString() << "containing" << pubkey.size() << "bytes";
-      pubkeys_.insert(reply->url().toString(),pubkey);
-      QCoreApplication::postEvent(this,new EventRefreshPlugins());
-    }
-  }
-}
-
-void MainWindow::netGotPlugin()
-{
-  QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-  if( reply )
-  {
-    if( reply->error() != QNetworkReply::NoError )
-    {
-      qWarning() << "Network error:" << reply->url().toString() << reply->errorString();
-      return;
-    }
-
-    foreach( AppLibrary *app_lib, plugins() )
-    {
-      AppPluginVersion apv = vercache_.get( app_lib->objectName() );
-      if( apv.downloadurl() == reply->url() )
-      {
-        if( reply->hasRawHeader("Content-Disposition") && reply->hasRawHeader("Content-Type") )
-        {
-          webUpdatePluginData( app_lib, reply);
-        }
-        else
-        {
-          qWarning() << "Download failed, no content";
-        }
-      }
-    }
-  }
-}
-
-void MainWindow::netGotVersion()
-{
-  QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-  if( reply )
-  {
-    if( reply->error() != QNetworkReply::NoError )
-    {
-      qWarning() << "Network error:" << reply->url().toString() << reply->errorString();
-      return;
-    }
-
-    if( vercache_.wantsUrl(reply->url()) )
-    {
-      qDebug() << "Version data from" << reply->url().toString() << "containing" << reply->size() << "bytes";
-      QString s = vercache_.parseReply(reply);
-      if( !s.isEmpty() )
-        qWarning() << s;
-      else
-      {
-        webUpdateCompare();
-        QCoreApplication::postEvent(this,new EventRefreshPlugins());
-      }
-    }
-  }
-}
-
-void MainWindow::netGotHeadReply()
-{
-  QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-  if( reply )
-  {
-    if( reply->error() != QNetworkReply::NoError )
-    {
-      qWarning() << "Network error:" << reply->url().toString() << reply->errorString();
-      return;
-    }
-
-    // this is a check if an announced next version is available
-    if( reply->error() == QNetworkReply::NoError && reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() < 400 )
-    {
-      qDebug() << "A new version of LCDHost is available at" << reply->url().toString();
-      new AppDownloadUpdateDialog(this);
-    }
-  }
-  return;
-}
-
-QString MainWindow::webUserAgent() const
-{
-  return QString("LCDHost-%1/%2").arg(VERSION).arg(AppPluginVersion::defaultArch());
-}
 
 void MainWindow::on_checkForPluginsButton_clicked()
 {

@@ -43,12 +43,8 @@ AppWelcomeDialog::AppWelcomeDialog(QWidget *parent) :
     QString text =
             "<html><head></head><body>"
             "<p align=\"center\"><h2>Thank you for using LCDHost!</h2></p>"
-            "<p align=\"justify\">If you like LCDHost, please help me out by spreading the word. "
-            "Blog about it, <a href=\"http://digg.com/submit?phase=2&amp;url=http://www.linkdata.se/software/lcdhost&amp;title=\">digg it</a>, "
-            "<a href=\"http://twitter.com/home?status=http://www.linkdata.se/software/lcdhost&amp;title=\">twitter</a> or "
-            "<a href=\"http://www.facebook.com/sharer.php?u=http://www.linkdata.se/software/lcdhost&amp;title=\">facebook</a> "
-            "about it, or simply tell your friends! If you need help, please don't hesitate to ask on the "
-            "<a href=\"http://www.linkdata.se/forum/lcdhost\">forum</a>.</p></body></html>";
+            "<p align=\"justify\">LCDHost is free software. If you need help or find a bug, "
+            "please open an issue on <a href=\"https://github.com/LokLakh-s/LCDHost\">GitHub</a>.</p></body></html>";
 
     QFile whatsnew(":/lcdhost/whatsnew.html");
     if( whatsnew.open(QIODevice::ReadOnly) )

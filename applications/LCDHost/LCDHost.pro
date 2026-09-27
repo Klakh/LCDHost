@@ -14,8 +14,6 @@ INCLUDEPATH += ../../linkdata/lh_api5plugin
 FORMS += MainWindow.ui \
     AppWelcomeDialog.ui \
     AppDebugDialog.ui \
-    AppUpdateDialog.ui \
-    AppDownloadUpdateDialog.ui \
     AppSourceDialog.ui
 
 SOURCES += ../lh_logger/LH_Logger.cpp
@@ -75,12 +73,7 @@ SOURCES += \
     AppGLWidget.cpp \
     AppSetupListBox.cpp \
     AppSetupButton.cpp \
-    AppVersionCache.cpp \
-    AppPluginVersion.cpp \
     AppPluginItemDelegate.cpp \
-    AppSendVersionInfo.cpp \
-    AppUpdateDialog.cpp \
-    AppDownloadUpdateDialog.cpp \
     EventBase.cpp \
     PluginInfo.cpp \
     AppSourceDialog.cpp \
@@ -177,12 +170,7 @@ HEADERS += \
     AppSetupListBox.h \
     AppSetupButton.h \
     EventRefreshPlugins.h \
-    AppVersionCache.h \
-    AppPluginVersion.h \
     AppPluginItemDelegate.h \
-    AppSendVersionInfo.h \
-    AppUpdateDialog.h \
-    AppDownloadUpdateDialog.h \
     EventRequestVisibility.h \
     EventBase.h \
     EventDebugStateRefresh.h \
@@ -196,7 +184,6 @@ HEADERS += \
     AppSourceLinkButton.h \
     EventObjectDestroy.h \
     AppTreeWidget.h \
-    ../miniz/miniz.c \
     LibDevicePointer.h \
     AppSetupItemSubscription.h \
     AppSetupLink.h \
