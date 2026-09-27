@@ -8,6 +8,8 @@ Versions up to 0.0.38 were released by the original author; see the
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-27
+
 ### Changed
 
 - LCDHost now requires Qt 6 (6.8 or later). Qt 4 and Qt 5 code paths are gone.
@@ -32,6 +34,10 @@ Versions up to 0.0.38 were released by the original author; see the
   layouts since 0.0.41.
 - Cursor plugin: adding a secondary cursor after "Secondary Cursor [n]"
   always produced "[2]".
+- LCoreReboot: possible read past the end of the process path when
+  translating device paths to drive letters.
+- Monitoring (Core Temp): the CPU name is read within the bounds of the
+  shared-memory field.
 
 ### Removed
 
@@ -93,7 +99,8 @@ Versions up to 0.0.38 were released by the original author; see the
 - Plugin load failures are logged.
 - Build instructions, headless smoke test and Linux CI.
 
-[Unreleased]: https://github.com/LokLakh-s/LCDHost-Revival/compare/v0.0.42...HEAD
+[Unreleased]: https://github.com/LokLakh-s/LCDHost-Revival/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.1.0
 [0.0.42]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.42
 [0.0.41]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.41
 [0.0.40]: https://github.com/LokLakh-s/LCDHost-Revival/releases/tag/v0.0.40
