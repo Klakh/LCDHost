@@ -25,7 +25,7 @@
 class AppAboutDialog : public QDialog
 {
 public:
-    AppAboutDialog( QWidget *parent = 0, Qt::WindowFlags f = 0 );
+    AppAboutDialog( QWidget *parent = 0, Qt::WindowFlags f = Qt::WindowFlags() );
 
 private:
 };

@@ -21,7 +21,7 @@
 #define LH_TS3_CLIENTLIST_H
 
 #include <QHash>
-#include <QRegExp>
+#include <QRegularExpression>
 
 struct clientdetail
 {
@@ -46,43 +46,43 @@ class clientlist: public QHash<int,clientdetail>
 {
     clientdetail parseClientString(QString item)
     {
-        QRegExp rx("(clid|cid|client_database_id|client_nickname|client_type|client_flag_talking|client_input_muted|client_output_muted|client_input_hardware|client_output_hardware|client_talk_power|client_is_talker|client_is_priority_speaker|client_is_recording|client_is_channel_commander)\\s*=\\s*(\\S+)");
-        int pos = rx.indexIn(item,0);
+        QRegularExpression rx("(clid|cid|client_database_id|client_nickname|client_type|client_flag_talking|client_input_muted|client_output_muted|client_input_hardware|client_output_hardware|client_talk_power|client_is_talker|client_is_priority_speaker|client_is_recording|client_is_channel_commander)\\s*=\\s*(\\S+)");
+        QRegularExpressionMatch rxMatch;
         clientdetail client;
-        while(pos != -1)
+        QRegularExpressionMatchIterator it = rx.globalMatch(item);
+        while(it.hasNext())
         {
-            if(rx.cap(1)=="clid")
-                client.clid = rx.cap(2).toInt();
-            if(rx.cap(1)=="cid")
-                client.cid = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_database_id")
-                client.dbid = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_nickname")
-                client.name = rx.cap(2).replace("\\s"," ");;
-            if(rx.cap(1)=="client_type")
-                client.type = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_flag_talking")
-                client.talking = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_input_muted")
-                client.inputMuted = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_output_muted")
-                client.outputMuted = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_input_hardware")
-                client.inputHardware = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_output_hardware")
-                client.outputHardware = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_talk_power")
-                client.talkPower = rx.cap(2).toInt();
-            if(rx.cap(1)=="client_is_talker")
-                client.isTalker = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_is_priority_speaker")
-                client.isPrioritySpeaker = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_is_recording")
-                client.isRecording = (rx.cap(2).toInt()!=0);
-            if(rx.cap(1)=="client_is_channel_commander")
-                client.isChannelCommander = (rx.cap(2).toInt()!=0);
-            pos += rx.matchedLength();
-            pos = rx.indexIn(item,pos);
+            const QRegularExpressionMatch rxMatch = it.next();
+            if(rxMatch.captured(1)=="clid")
+                client.clid = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="cid")
+                client.cid = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_database_id")
+                client.dbid = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_nickname")
+                client.name = rxMatch.captured(2).replace("\\s"," ");;
+            if(rxMatch.captured(1)=="client_type")
+                client.type = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_flag_talking")
+                client.talking = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_input_muted")
+                client.inputMuted = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_output_muted")
+                client.outputMuted = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_input_hardware")
+                client.inputHardware = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_output_hardware")
+                client.outputHardware = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_talk_power")
+                client.talkPower = rxMatch.captured(2).toInt();
+            if(rxMatch.captured(1)=="client_is_talker")
+                client.isTalker = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_is_priority_speaker")
+                client.isPrioritySpeaker = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_is_recording")
+                client.isRecording = (rxMatch.captured(2).toInt()!=0);
+            if(rxMatch.captured(1)=="client_is_channel_commander")
+                client.isChannelCommander = (rxMatch.captured(2).toInt()!=0);
         }
         return client;
     }
@@ -103,9 +103,10 @@ public:
 
     int findclid(QString regexp)
     {
-        QRegExp rx(QString("%2%1%3").arg(regexp).arg(regexp.startsWith("^")?"":"^").arg(regexp.endsWith("$")?"":"$"));
+        QRegularExpression rx(QString("%2%1%3").arg(regexp).arg(regexp.startsWith("^")?"":"^").arg(regexp.endsWith("$")?"":"$"));
+        QRegularExpressionMatch rxMatch;
         foreach(clientdetail client, this->values())
-            if(rx.indexIn(client.name)!=-1)
+            if((rxMatch = rx.match(client.name)).hasMatch())
                 return client.clid;
         return -1;
     }

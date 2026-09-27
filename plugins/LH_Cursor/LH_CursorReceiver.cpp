@@ -18,6 +18,7 @@
 */
 
 #include "LH_CursorReceiver.h"
+#include <QRegularExpression>
 
 LH_CursorReceiver::LH_CursorReceiver(LH_QtInstance *parent, const char *amember) : QObject(parent)
 {
@@ -74,7 +75,7 @@ cursorData LH_CursorReceiver::data()
 
 void LH_CursorReceiver::postback(cursorData data)
 {
-    QString key = setup_json_data_->link().remove(QRegExp("^(@|=)"));
+    QString key = setup_json_data_->link().remove(QRegularExpression("^(@|=)"));
     if(postback_data.contains(key))
         postback_data.remove(key);
     postback_data.insert(key, data.serialize());

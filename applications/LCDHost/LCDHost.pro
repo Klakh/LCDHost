@@ -192,7 +192,6 @@ HEADERS += \
 RESOURCES += LCDHostResources.qrc
 OTHER_FILES += lcdhost.rc
 
-CONFIG(debug, debug|release): include(../modeltest/modeltest.pri)
 
 win32 {
     RC_FILE = lcdhost.rc

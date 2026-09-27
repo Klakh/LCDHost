@@ -19,6 +19,7 @@
 
 
 #include <QtDebug>
+#include <algorithm>
 #include <QWidget>
 #include <QDataStream>
 #include <QPainter>
@@ -1300,7 +1301,7 @@ QList<AppInstance *> AppInstance::childItemsByZ() const
     QList<AppInstance *> list;
     for( i=orig_list.constBegin(); i!=orig_list.constEnd(); ++i )
         list.append( static_cast<AppInstance*>(*i) );
-    qStableSort(list.begin(), list.end(), AppInstanceLessThan );
+    std::stable_sort(list.begin(), list.end(), AppInstanceLessThan );
     return list;
 }
 

@@ -21,10 +21,10 @@ Legend: ✅ done · 🚧 in progress · ⬜ planned
 
 ## Phase 1: Modern toolchain
 
-- 🚧 **Port to Qt 6** (target: latest Qt 6 release) and drop Qt 5 support:
-  `QRegExp` → `QRegularExpression`, `QGLWidget` → `QOpenGLWidget`,
-  `QDesktopWidget` → `QScreen`, `QTextCodec`, removed Windows version APIs,
-  Qt WebEngine module changes.
+- ✅ **Port to Qt 6** (6.8 or later, CI on 6.11) and drop Qt 4/5 code paths.
+- ⬜ Replace the remaining deprecated Qt APIs reported by the compiler, and
+  remove (or port to `QOpenGLWidget`) the OpenGL rendering path, which has
+  been disabled at build time since the original project.
 - ⬜ **Move the build from qmake to CMake**, the build system recommended for
   Qt 6, and remove the custom qmake feature machinery.
 - ⬜ **Replace outdated bundled libraries** with current upstream versions,
@@ -32,7 +32,8 @@ Legend: ✅ done · 🚧 in progress · ⬜ planned
   libusbx 1.0.15 → libusb, signal11 HIDAPI → libusb/hidapi, TagLib 1.7 →
   TagLib 2, and drop the bundled zlib 1.2.5 (known vulnerabilities).
 - ⬜ Replace in-house helpers with Qt equivalents: `codeleap/json` →
-  `QJsonDocument`, bundled model test → `QAbstractItemModelTester`.
+  `QJsonDocument`.
+- ⬜ DataViewer: stop using a layout-provided string as a `printf` format.
 - ⬜ **Stop redistributing proprietary SDKs** (Logitech LCD SDK, iTunes COM
   SDK): let developers point the build to their own copy and make the
   dependent features optional.

@@ -26,7 +26,7 @@
 #include "json.h"
 
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 
 LH_PLUGIN_CLASS(LH_CursorController)
 
@@ -508,7 +508,7 @@ void LH_CursorController::virtualKeyPress(QString s)
 
 void LH_CursorController::processPostback()
 {
-    QString key = setup_link_json_data_->link().remove(QRegExp("^(@|=)"));
+    QString key = setup_link_json_data_->link().remove(QRegularExpression("^(@|=)"));
     //qDebug() << "INCOMING Postback:" << key;
     if(postback_data.contains(key))
     {
@@ -528,10 +528,12 @@ void LH_CursorController::processPostback()
         newLink ="Cursors/Secondary Cursor";
     else
     {
-        QRegExp rx("Cursors/Secondary Cursor \\[([0-9]*)\\]");
+        QRegularExpression rx("Cursors/Secondary Cursor \\[([0-9]*)\\]");
+        QRegularExpressionMatch rxMatch;
+        const QRegularExpressionMatch rxMatch = rx.match(linkName);
         int n = 2;
-        if(rx.indexIn(linkName))
-            n = rx.cap(1).toInt()+1;
+        if(rxMatch.hasMatch())
+            n = rxMatch.captured(1).toInt()+1;
         newLink = QString("Cursors/Secondary Cursor [%1]").arg(n);
     }
 

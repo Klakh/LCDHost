@@ -35,7 +35,7 @@
 
 #include <QDebug>
 #include <QtNetwork>
-#include <QRegExp>
+#include <QRegularExpression>
 
 #include "LH_WebKit.h"
 
@@ -52,7 +52,7 @@ LH_WebKit::LH_WebKit(const bool enableParsing)
     progress_->setOrder(2);
 
     sock_ = NULL;
-    lastpong_ = QTime::currentTime();
+    lastpong_.start();
     sent_html_ = false;
     memset( &kitdata_, 0, sizeof(kitdata_) );
 
@@ -121,7 +121,7 @@ int LH_WebKit::notify(int code, void *param)
 
 void LH_WebKit::socketTimeout()
 {
-    lastpong_ = QTime::currentTime();
+    lastpong_.start();
     sent_html_ = false;
     sock_->abort();
 }
@@ -142,7 +142,7 @@ bool LH_WebKit::verifySocket()
         switch( sock_->state() )
         {
         case QLocalSocket::UnconnectedState:
-            lastpong_ = QTime::currentTime();
+            lastpong_.start();
             sent_html_ = false;
             sock_->connectToServer("LCDHost_WebKitServer");
             break;
@@ -172,14 +172,14 @@ bool LH_WebKit::verifySocket()
 
 void LH_WebKit::connected()
 {
-    lastpong_ = QTime::currentTime();
+    lastpong_.start();
     sendData(false);
     return;
 }
 
 void LH_WebKit::disconnected()
 {
-    lastpong_ = QTime::currentTime();
+    lastpong_.start();
     sent_html_ = false;
     memset( &kitdata_, 0, sizeof(kitdata_) );
     return;
@@ -196,7 +196,7 @@ void LH_WebKit::error(QLocalSocket::LocalSocketError err)
     if( sock_ )
     {
         qWarning() << "LH_WebKit socket error" << (int)err << sock_->errorString();
-        lastpong_ = QTime::currentTime();
+        lastpong_.start();
         sent_html_ = false;
         memset( &kitdata_, 0, sizeof(kitdata_) );
         sock_->abort();
@@ -301,7 +301,7 @@ void LH_WebKit::readyRead()
         if( !kitdata_.bytecount && !kitdata_.w && !kitdata_.h )
         {
             // PONG
-            lastpong_ = QTime::currentTime();
+            lastpong_.start();
             return;
         }
     }
@@ -322,7 +322,7 @@ void LH_WebKit::readyRead()
         else *image() = tmp.scaled( size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
     }
 
-    lastpong_ = QTime::currentTime();
+    lastpong_.start();
     memset( &kitdata_, 0, sizeof(kitdata_) );
     callback( lh_cb_render, 0 );
 }
@@ -348,11 +348,14 @@ void LH_ParseThread::run()
 {
     if (doParse)
     {
-        QRegExp rx(regex, Qt::CaseInsensitive, QRegExp::RegExp2 );
-        rx.setMinimal(isLazy);
-        if (rx.indexIn(sourceHtml)!=-1)
+        QRegularExpression::PatternOptions options = QRegularExpression::CaseInsensitiveOption;
+        if (isLazy)
+            options |= QRegularExpression::InvertedGreedinessOption;
+        QRegularExpression rx(regex, options);
+        QRegularExpressionMatch rxMatch;
+        if ((rxMatch = rx.match(sourceHtml)).hasMatch())
             for(int i=1; i <= rx.captureCount(); i++)
-                parsedHtml = parseToken(parsedHtml, QString::number(i), rx.cap(i), "0-9" );
+                parsedHtml = parseToken(parsedHtml, QString::number(i), rxMatch.captured(i), "0-9" );
         for(int i=0; i<tokensList.count(); i++)
         {
             QString key = tokensList.keys().at(i);
@@ -366,5 +369,5 @@ void LH_ParseThread::run()
 QString LH_ParseThread::parseToken(QString beforeParsing, QString token, QString value, QString lookAheadChars)
 {
     QString regExp = QString("\\\\%1(?=[^%2]|$)").arg(token).arg(lookAheadChars);
-    return beforeParsing.replace(QRegExp(regExp, Qt::CaseInsensitive, QRegExp::RegExp2), value  );
+    return beforeParsing.replace(QRegularExpression(regExp, QRegularExpression::CaseInsensitiveOption), value  );
 }

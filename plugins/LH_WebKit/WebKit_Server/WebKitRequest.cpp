@@ -151,7 +151,7 @@ void WebKitRequest::repaint()
         painter.end();
 
         WebKitData data;
-        data.bytecount = image_.byteCount();
+        data.bytecount = qint32(image_.sizeInBytes());
         data.progress = progress_;
         data.w = image_.width();
         data.h = image_.height();

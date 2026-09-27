@@ -19,8 +19,11 @@
 
 
 #include <QtGlobal>
+#include <QRegularExpression>
+#include <QElapsedTimer>
+#include <algorithm>
 #include <QDebug>
-#include <QMatrix>
+#include <QTransform>
 #include <QMessageBox>
 #include <QSettings>
 #include <QFileDialog>
@@ -83,16 +86,9 @@
 #include "AppPluginItemDelegate.h"
 #include "EventAppStartup.h"
 
-#include <QDesktopWidget>
 
 #ifdef Q_OS_WIN
 # include <windows.h>
-#endif
-
-#if 1
-#ifndef QT_NO_DEBUG
-# include "modeltest.h"
-#endif
 #endif
 
 char lh_mainwindow_signature_marker[] = LH_SIGNATURE_MARKER;
@@ -184,10 +180,8 @@ bool MainWindow::systrayStartup()
     systray_ = new QSystemTrayIcon(systray_icon, this);
     systray_->setToolTip(tr("LCDHost"));
     systray_->setContextMenu(systraymenu_);
-    //#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     connect( systray_, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
              this, SLOT(systrayActivated(QSystemTrayIcon::ActivationReason)) );
-    //#endif
     systray_->show();
   }
 
@@ -722,7 +716,7 @@ bool MainWindow::hasSystray() const
 
 void MainWindow::logged(uint msgtime, int msgtype, QString msgtext)
 {
-  log(QDateTime::fromTime_t(msgtime), (QtMsgType) msgtype, msgtext);
+  log(QDateTime::fromSecsSinceEpoch(msgtime), (QtMsgType) msgtype, msgtext);
   return;
 }
 
@@ -857,7 +851,7 @@ static bool comparePluginName( const AppLibrary* a, const AppLibrary* b )
 QList<AppLibrary*> MainWindow::plugins() const
 {
   QList<AppLibrary *> list(plugins_->findChildren<AppLibrary *>(QString(), Qt::FindDirectChildrenOnly));
-  qStableSort( list.begin(), list.end(), comparePluginName );
+  std::stable_sort( list.begin(), list.end(), comparePluginName );
   return list;
 }
 
@@ -1024,10 +1018,10 @@ void MainWindow::refreshPluginDetails()
   ui->AuthorValue->setText( app_library->author() );
   ui->HomepageValue->setText( app_library->homepage() );
 
-  QRegExp hpurl("<a href=\\\"([^\\\"]*)\\\">");
-  hpurl.setCaseSensitivity(Qt::CaseInsensitive);
-  if( hpurl.indexIn(app_library->homepage()) != -1 )
-    ui->HomepageValue->setToolTip( hpurl.cap(1) );
+  QRegularExpression hpurl("<a href=\\\"([^\\\"]*)\\\">", QRegularExpression::CaseInsensitiveOption);
+  QRegularExpressionMatch hpurlMatch;
+  if( (hpurlMatch = hpurl.match(app_library->homepage())).hasMatch() )
+    ui->HomepageValue->setToolTip( hpurlMatch.captured(1) );
 
   ui->PluginComments->setText( app_library->comments() );
   ui->Logo->setPixmap( QPixmap::fromImage( app_library->logo() ) );
@@ -1704,10 +1698,10 @@ void MainWindow::zoom(int steps)
 void MainWindow::on_layoutZoomSlider_valueChanged( int value )
 {
   QRectF selRect;
-  QMatrix matrix;
-  matrix.scale( value, value );
+  QTransform transform;
+  transform.scale( value, value );
   currentLayoutZoom = value;
-  ui->layoutView->setMatrix( matrix );
+  ui->layoutView->setTransform( transform );
   foreach( QGraphicsItem* item, scene()->selectedItems() )
     selRect = selRect.united( item->sceneBoundingRect() );
   if( selRect.isEmpty() ) ui->layoutView->centerOn( AppDevice::current().size().width()/2, AppDevice::current().size().height()/2 );
@@ -1805,7 +1799,7 @@ void MainWindow::run() {
     case kStateStartLog: {
       QString logFileName(lh_log_dir());
       ui->logView->setMaximumBlockCount(1000);
-      ui->logView->setTabStopWidth(20);
+      ui->logView->setTabStopDistance(20);
       if(LH_Logger *logger = LH_Logger::lock()) {
         logFileName = logger->fileName();
         logger->unlock();
@@ -1968,7 +1962,7 @@ void MainWindow::run() {
       break;
     case kStateStopped:{
 #ifndef QT_NODEBUG
-      QTime now;
+      QElapsedTimer now;
       now.start();
       while(now.elapsed() < 1000 && AppId::countAppObjects())
         QThread::yieldCurrentThread();

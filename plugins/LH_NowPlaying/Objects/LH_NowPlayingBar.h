@@ -39,7 +39,7 @@
 #define LH_NOWPLAYINGBAR_H
 
 #include <QTime>
-#include <QRegExp>
+#include <QRegularExpression>
 
 #include "LH_Bar/LH_Bar.h"
 

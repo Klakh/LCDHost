@@ -21,6 +21,7 @@
 #define LH_TS3_CHANNELLIST_H
 
 #include <QHash>
+#include <QRegularExpression>
 
 struct channeldetail
 {
@@ -41,28 +42,27 @@ public:
             return false;
         this->clear();
         QStringList list = responseMsg.split('|');
-        QRegExp rx("(cid|pid|channel_order|channel_name|total_clients|channel_needed_subscribe_power)\\s*=\\s*(\\S+)");
-        int pos = 0;
+        QRegularExpression rx("(cid|pid|channel_order|channel_name|total_clients|channel_needed_subscribe_power)\\s*=\\s*(\\S+)");
+        QRegularExpressionMatch rxMatch;
         foreach(QString item, list)
         {
             channeldetail chan;
-            pos = rx.indexIn(item,0);
-            while(pos != -1)
+            QRegularExpressionMatchIterator it = rx.globalMatch(item);
+            while(it.hasNext())
             {
-                if(rx.cap(1)=="cid")
-                    chan.cid = rx.cap(2).toInt();
-                if(rx.cap(1)=="pid")
-                    chan.pid = rx.cap(2).toInt();
-                if(rx.cap(1)=="channel_order")
-                    chan.order = rx.cap(2).toInt();
-                if(rx.cap(1)=="channel_name")
-                    chan.name = rx.cap(2).replace("\\s"," ");;
-                if(rx.cap(1)=="total_clients")
-                    chan.clientCount = rx.cap(2).toInt();
-                if(rx.cap(1)=="channel_needed_subscribe_power")
-                    chan.neededSubscribePower = (rx.cap(2).toInt()!=0);
-                pos += rx.matchedLength();
-                pos = rx.indexIn(item,pos);
+                const QRegularExpressionMatch rxMatch = it.next();
+                if(rxMatch.captured(1)=="cid")
+                    chan.cid = rxMatch.captured(2).toInt();
+                if(rxMatch.captured(1)=="pid")
+                    chan.pid = rxMatch.captured(2).toInt();
+                if(rxMatch.captured(1)=="channel_order")
+                    chan.order = rxMatch.captured(2).toInt();
+                if(rxMatch.captured(1)=="channel_name")
+                    chan.name = rxMatch.captured(2).replace("\\s"," ");;
+                if(rxMatch.captured(1)=="total_clients")
+                    chan.clientCount = rxMatch.captured(2).toInt();
+                if(rxMatch.captured(1)=="channel_needed_subscribe_power")
+                    chan.neededSubscribePower = (rxMatch.captured(2).toInt()!=0);
             }
             insert(chan.cid, chan);
         }

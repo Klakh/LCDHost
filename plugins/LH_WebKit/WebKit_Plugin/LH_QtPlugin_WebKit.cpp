@@ -63,9 +63,9 @@ char __lcdhostplugin_xml[] =
 
 bool LH_QtPlugin_WebKit::startServer()
 {
-    if( last_start_.isNull() || last_start_.elapsed() > 10000 )
+    if( !last_start_.isValid() || last_start_.elapsed() > 10000 )
     {
-        last_start_ = QTime::currentTime();
+        last_start_.start();
         QString wksname = QFileInfo(QCoreApplication::applicationFilePath()).canonicalPath() + "/WebKitServer";
         QStringList wksargs;
         wksargs << "--hidden"

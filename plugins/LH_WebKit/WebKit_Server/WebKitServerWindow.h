@@ -21,6 +21,7 @@
 #define WEBKITSERVERWINDOW_H
 
 #include <QtNetwork>
+#include <QElapsedTimer>
 
 #include <QApplication>
 #include <QDialog>
@@ -75,7 +76,7 @@ private:
     Ui::WebKitServerWindow *ui;
     int rps_;
     WebKitHeart *heart_;
-    QTime lastbeat_;
+    QElapsedTimer lastbeat_;
 
 private slots:
     void on_pushButton_2_clicked(bool checked);

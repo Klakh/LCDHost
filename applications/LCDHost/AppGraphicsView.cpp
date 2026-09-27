@@ -31,6 +31,6 @@ AppGraphicsView::AppGraphicsView(QWidget *parent)
 
 void AppGraphicsView::wheelEvent ( QWheelEvent * e )
 {
-    emit zoom(e->delta() / (8*15));
+    emit zoom(e->angleDelta().y() / (8*15));
     e->accept();
 }

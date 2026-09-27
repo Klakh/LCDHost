@@ -10,7 +10,6 @@ below lists what is bundled, where, and under which terms.
 | [HIDAPI](https://github.com/signal11/hidapi) (signal11) | 2009 | `applications/lh_hid/hidapi/` | GPL v3, BSD-style, or original HIDAPI license (at your choice) | `lh_hid`, Logitech HID drivers |
 | [TagLib](https://taglib.org/) | 1.7.0 | `3rdParty/taglib/` | LGPL 2.1 or MPL 1.1 | `LH_NowPlaying` (cover art, tags) |
 | [zlib](https://zlib.net/) | 1.2.5 | `3rdParty/zlib/` | zlib license | TagLib |
-| Qt model test | 2012 | `applications/modeltest/` | LGPL 2.1 with Qt exception or GPL v3 | debug builds only |
 | Logitech LCD SDK (`lglcd.h`, `lglcd.lib`, `liblgLcd.a`) | 3.0 or later | `plugins/LH_LgLcdMan/win/`, `plugins/LH_LgLcdMan/mac/` | **Proprietary** (Logitech LCD SDK License Agreement) | `LH_LgLcdMan` |
 | iTunes COM SDK (generated headers) | — | `plugins/LH_NowPlaying/SDKs/iTunes/` | **Proprietary** (Apple) | `LH_NowPlaying` |
 | Winamp SDK headers (`wa_*.h`) | — | `plugins/LH_NowPlaying/SDKs/Winamp/` | Nullsoft SDK terms | `LH_NowPlaying` |

@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(LCDHostResources);
 
-    QCoreApplication::setAttribute(Qt::AA_ImmediateWidgetCreation, true);
 #ifdef Q_OS_MAC
     QCoreApplication::setAttribute(Qt::AA_NativeWindows, true);
 #endif
@@ -95,7 +94,6 @@ int main(int argc, char *argv[])
 #endif
 
     qRegisterMetaType<AppId>("AppId");
-    qsrand( QTime::currentTime().msec() + QTime::currentTime().second() );
 
     LH_Logger *logger = new LH_Logger(QLatin1String("LCDHost"));
     // AppState *app_state = new AppState(qApp);

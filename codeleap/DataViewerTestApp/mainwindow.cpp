@@ -18,6 +18,8 @@
 */
 
 #include "mainwindow.h"
+#include <QRandomGenerator>
+#include <QElapsedTimer>
 #include "ui_mainwindow.h"
 #include <QTime>
 
@@ -73,19 +75,19 @@ void MainWindow::init()
 
 void MainWindow::generateCharacter(character *c)
 {
-    QTime now = QTime::currentTime();
+    QElapsedTimer now = QTime::currentTime();
     srand((uint)now.msec());
 
     c->setName("Player");
     c->setRace("Human");
     c->gold = 100;
 
-    c->dexterity.base = qrand() % 20;
-    c->strength.base = qrand() % 20;
-    c->willpower.base = qrand() % 20;
-    c->magic.base = qrand() % 20;
-    c->cunning.base = qrand() % 20;
-    c->intelligence.base = qrand() % 20;
+    c->dexterity.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
+    c->strength.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
+    c->willpower.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
+    c->magic.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
+    c->cunning.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
+    c->intelligence.base = int(QRandomGenerator::global()->generate() & 0x7fffffff) % 20;
     c->health.base = c->strength.base * 10 + 40;
     c->mana.base = c->willpower.base * 4 + 20;
 
@@ -119,7 +121,7 @@ void MainWindow::drinkSelectedPotion()
 
 void MainWindow::castSpell()
 {
-    player_->mana.current -= (qrand() % 100)/10.0;
+    player_->mana.current -= (int(QRandomGenerator::global()->generate() & 0x7fffffff) % 100)/10.0;
     if(player_->mana.current < 0)
         player_->mana.current = 0;
     refreshSheet(player_);
@@ -127,7 +129,7 @@ void MainWindow::castSpell()
 
 void MainWindow::damagePlayer()
 {
-    player_->health.current -= (qrand() % 100)/10.0;
+    player_->health.current -= (int(QRandomGenerator::global()->generate() & 0x7fffffff) % 100)/10.0;
     if(player_->health.current < 0)
         player_->health.current = 0;
     refreshSheet(player_);

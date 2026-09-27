@@ -8,6 +8,21 @@ Versions up to 0.0.38 were released by the original author; see the
 
 ## [Unreleased]
 
+### Changed
+
+- LCDHost now requires Qt 6 (6.8 or later). Qt 4 and Qt 5 code paths are gone.
+- Timers use `QElapsedTimer` and regular expressions use
+  `QRegularExpression`.
+
+### Fixed
+
+- Cursor plugin: adding a secondary cursor after "Secondary Cursor [n]"
+  always produced "[2]".
+
+### Removed
+
+- The bundled Qt model test and an unused qmake include file.
+
 ## [0.0.42] - 2026-09-27
 
 ### Changed

@@ -78,7 +78,7 @@ WebKitServerWindow::WebKitServerWindow(QWidget *parent) :
     heart_ = new WebKitHeart(this);
     heart_->rate = settings.value("heartrate",30).toInt();
     heart_->start( QThread::HighPriority );
-    lastbeat_ = QTime::currentTime();
+    lastbeat_.start();
     ui->spinBoxMaxFPS->setValue(heart_->rate);
 }
 
@@ -193,8 +193,8 @@ void WebKitServerWindow::refreshList()
             item->setData( Qt::UserRole, (qlonglong)(qptrdiff)(void*)req );
             ui->listWidget->addItem( item );
             item->setSelected( true );
-            if( req->isDead() ) item->setTextColor( Qt::red );
-            else item->setTextColor( Qt::green );
+            if( req->isDead() ) item->setForeground( Qt::red );
+            else item->setForeground( Qt::green );
         }
     }
 
@@ -206,7 +206,7 @@ bool WebKitServerWindow::event(QEvent *e)
     if( e->type() == EventWebKitHeartbeat::type() )
     {
         // if( lastbeat_.elapsed() > 3*(1000/heart_->rate) ) qWarning() << lastbeat_.elapsed() << "ms since last heartbeat, interval" << (1000/heart_->rate);
-        lastbeat_ = QTime::currentTime();
+        lastbeat_.start();
         updateRequests();
         return true;
     }

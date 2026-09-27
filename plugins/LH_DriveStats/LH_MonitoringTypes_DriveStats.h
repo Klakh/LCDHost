@@ -238,7 +238,7 @@ class DrivesList: public QHash<QString,DriveInfo>
         if(char *buf = new char[maxlen])
         {
             DWORD len = GetLogicalDriveStringsA(maxlen, buf);
-            result = QString::fromLocal8Bit(buf, len).split(QChar(0), QString::SkipEmptyParts);
+            result = QString::fromLocal8Bit(buf, len).split(QChar(0), Qt::SkipEmptyParts);
             delete[] buf;
         }
         return result;

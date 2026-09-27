@@ -26,11 +26,7 @@
 #include <QHash>
 #include <QEvent>
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 typedef QtMessageHandler lh_log_handler_t;
-#else
-typedef QtMsgHandler lh_log_handler_t;
-#endif
 
 class LH_LoggerEvent : public QEvent
 {
@@ -42,7 +38,7 @@ public:
     , m_type(msgtype)
     , m_text(msgtext)
   {}
-  QDateTime msgTime() const { return QDateTime::fromTime_t(m_time); }
+  QDateTime msgTime() const { return QDateTime::fromSecsSinceEpoch(m_time); }
   QtMsgType msgType() const { return m_type; }
   QString msgText() const { return m_text; }
 

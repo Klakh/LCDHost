@@ -39,6 +39,7 @@
 #define LH_QTPLUGIN_NOWPLAYING_H
 
 #include <QDateTime>
+#include <QElapsedTimer>
 
 #include "LH_QtPlugin.h"
 #include "LH_Qt_QString.h"
@@ -84,7 +85,7 @@ class LH_QtPlugin_NowPlaying : public LH_QtPlugin
     QTimer timer_;
 
 #ifdef ITUNES_AUTO_CLOSING
-    QTime elapsedTime_;
+    QElapsedTimer elapsedTime_;
     bool forceClose_;
 #endif
     HWND hWnd_iTunes_warn_cache_;

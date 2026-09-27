@@ -33,6 +33,7 @@
   */
 
 #include <QDebug>
+#include <algorithm>
 #include <QList>
 #include <QByteArray>
 #include "LH_QtObject.h"
@@ -164,7 +165,7 @@ lh_setup_item **LH_QtObject::setup_data()
         LH_QtSetupItem *si = qobject_cast<LH_QtSetupItem *>(*i);
         if( si ) list.append(si);
     }
-    qStableSort( list.begin(), list.end(), compareSetupItems );
+    std::stable_sort( list.begin(), list.end(), compareSetupItems );
 
     setup_item_vector_.clear();
     foreach( LH_QtSetupItem *si, list ) setup_item_vector_.append( si->item() );

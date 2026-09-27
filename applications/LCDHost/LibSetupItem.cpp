@@ -71,7 +71,7 @@ LibSetupItem::LibSetupItem( const lh_setup_item * item ) :
     case lh_type_integer_list:
     case lh_type_integer_listbox:
         val_ = item->data.i;
-        if( param_.list ) paramlist_ = QString(param_.list).split('\t',QString::SkipEmptyParts);
+        if( param_.list ) paramlist_ = QString(param_.list).split('\t',Qt::SkipEmptyParts);
         param_.list = NULL; // make sure we don't touch unsafe data
         break;
     case lh_type_integer_boolean:

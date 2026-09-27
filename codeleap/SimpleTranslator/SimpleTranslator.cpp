@@ -34,7 +34,7 @@
 #include "SimpleTranslator.h"
 
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
@@ -70,9 +70,10 @@ void SimpleTranslator::addItem(QString *item, TranslationType transType)
     }
     if(rxString!="")
     {
-        QRegExp rx(rxString);
-        if(rx.indexIn(value)!=-1)
-            value = fullDateName(rx.cap(1));
+        QRegularExpression rx(rxString);
+        QRegularExpressionMatch rxMatch;
+        if((rxMatch = rx.match(value)).hasMatch())
+            value = fullDateName(rxMatch.captured(1));
         else
             value = "";
     }
@@ -116,12 +117,13 @@ void SimpleTranslator::apply(QString* item, QString translatedValue, Translation
     }
     if(rxString!="")
     {
-        QRegExp rx(rxString);
-        if(rx.indexIn(value)!=-1)
+        QRegularExpression rx(rxString);
+        QRegularExpressionMatch rxMatch;
+        if((rxMatch = rx.match(value)).hasMatch())
         {
             QString translation = translatedValue.trimmed();
             translation = fixCaps(translation);
-            addToCache(fullDateName(rx.cap(0)), translation);
+            addToCache(fullDateName(rxMatch.captured(0)), translation);
             if(transType == ttDayName)
                 translation = translation.left(3);
             value = value.replace(rx, translation);
@@ -133,19 +135,14 @@ void SimpleTranslator::apply(QString* item, QString translatedValue, Translation
 
 QString SimpleTranslator::fixCaps(QString src)
 {
-    src = src.replace(QRegExp("(^|\\W)pm(\\W|$)"),"\\1PM\\2");
-    src = src.replace(QRegExp("(^|\\W)am(\\W|$)"),"\\1AM\\2");
+    src = src.replace(QRegularExpression("(^|\\W)pm(\\W|$)"),"\\1PM\\2");
+    src = src.replace(QRegularExpression("(^|\\W)am(\\W|$)"),"\\1AM\\2");
 
-    QRegExp rx("(?:^|\\W)([a-z])");
-    int pos = 0;
-    while((pos = rx.indexIn(src, pos)+1)!=0)
-    {
-        QString capText = rx.cap(0);
-        src = QString("%1%2%3")
-                .arg(pos<=1? "" : src.left(pos-1))
-                .arg(capText.toUpper())
-                .arg(src.length()-pos-capText.length()+1 <= 0 ? "" : src.right(src.length()-pos-capText.length()+1));
-    }
+    // Capitalise every letter that starts a word.
+    static const QRegularExpression rx("(?:^|\\W)([a-z])");
+    QRegularExpressionMatch rxMatch;
+    for (QRegularExpressionMatch m = rx.match(src); m.hasMatch(); m = rx.match(src, m.capturedEnd()))
+        src.replace(m.capturedStart(1), 1, m.captured(1).toUpper());
     return src;
 }
 
@@ -200,7 +197,7 @@ void SimpleTranslator::loadCache(bool languageList, bool includeUntranslatedLang
         if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
             QTextStream out(&file);
-            QStringList cachedItems = out.readAll().split("\n", QString::SkipEmptyParts);
+            QStringList cachedItems = out.readAll().split("\n", Qt::SkipEmptyParts);
             file.close();
 
             for(int i=0; i<cachedItems.length(); i++)

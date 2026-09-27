@@ -89,7 +89,7 @@ AppState::~AppState()
 
 AppState *AppState::instance()
 {
-  return instance_.load();
+  return instance_.loadAcquire();
 }
 
 void AppState::setLayout( QString path, QString file )

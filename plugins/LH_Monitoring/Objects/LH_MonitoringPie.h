@@ -21,13 +21,14 @@
 #define LH_MONITORINGPIE_H
 
 #include "Sources/LH_MonitoringUI.h"
+#include <QElapsedTimer>
 #include "LH_Dial/LH_Dial.h"
 #include <QTime>
 
 class LH_MonitoringPie : public LH_Dial
 {
     Q_OBJECT
-    QTime pollTimer_;
+    QElapsedTimer pollTimer_;
 
 protected:
     LH_MonitoringUI *ui_;

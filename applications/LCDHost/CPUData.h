@@ -21,6 +21,7 @@
 #define CPUDATA_H
 
 #include <QtGlobal>
+#include <QElapsedTimer>
 #include <QTime>
 
 class CPUCore
@@ -36,7 +37,7 @@ class CPUData
 private:
     int count_;
     CPUCore *core_;
-    QTime when_;
+    QElapsedTimer when_;
 
 public:
     CPUData( int c )
@@ -63,7 +64,6 @@ public:
         return;
     }
     int count() { return count_; }
-    QTime when() { return when_; }
     int elapsed() { return when_.elapsed(); }
     const CPUCore *core(int n) { if( n>=0 && n<count_ ) return & core_[n]; return NULL; }
     qreal load(int n, CPUData *since = NULL );

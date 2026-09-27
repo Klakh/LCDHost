@@ -23,6 +23,7 @@
   */
 
 #include "LH_CursorAction.h"
+#include <QRegularExpression>
 #include <QProcess>
 #include <QDesktopServices>
 
@@ -162,7 +163,8 @@ void LH_CursorAction::fire(int startAt)
             }else
             if(typeCode=="run")
             {
-                QRegExp rx("((?:[^\\s\"]*(?:\"[^\"]*\")?)*)");
+                QRegularExpression rx("((?:[^\\s\"]*(?:\"[^\"]*\")?)*)");
+                QRegularExpressionMatch rxMatch;
                 QProcess process;
                 QString path = action.getParameter(e,0);
                 QFileInfo exe = QFileInfo(path);
@@ -170,10 +172,10 @@ void LH_CursorAction::fire(int startAt)
                     exe = QFileInfo(QString("%1%2").arg(state()->dir_layout).arg(path));
                 QString argsString = action.getParameter(e,1);
                 QStringList argsList;
-                if(rx.indexIn(argsString) != -1)
+                if((rxMatch = rx.match(argsString)).hasMatch())
                     for(int i=1; i<=rx.captureCount(); i++)
-                        if(rx.cap(i)!="")
-                            argsList.append(rx.cap(i));
+                        if(rxMatch.captured(i)!="")
+                            argsList.append(rxMatch.captured(i));
                 process.startDetached(exe.absoluteFilePath(),argsList,state()->dir_layout);
             }else
             if(typeCode=="url")

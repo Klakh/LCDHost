@@ -21,6 +21,7 @@
 #define LH_RSSFEED_H
 
 #include <QNetworkAccessManager>
+#include <QElapsedTimer>
 #include <QUrl>
 #include <QWidget>
 #include <QBuffer>
@@ -60,7 +61,7 @@ class LH_RSSFeed: public QObject
 {
     Q_OBJECT
 
-    QTime notifyTimer_;
+    QElapsedTimer notifyTimer_;
 
     QList<RSSItem> items_;
     int nowshowing_;
@@ -68,8 +69,8 @@ class LH_RSSFeed: public QObject
     QXmlStreamReader xml_;
     QUrl url_;
     QDateTime lastrefresh_;
-    QTime lastopen_;
-    QTime lastmove_;
+    QElapsedTimer lastopen_;
+    QElapsedTimer lastmove_;
 
     QNetworkAccessManager *nam_;
     // int connectionId;

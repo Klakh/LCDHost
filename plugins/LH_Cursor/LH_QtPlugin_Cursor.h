@@ -26,6 +26,7 @@
 #define LH_QTPLUGIN_CURSOR_H
 
 #include "LH_QtPlugin.h"
+#include <QElapsedTimer>
 #include "LH_Qt_bool.h"
 #include "LH_Qt_int.h"
 #include "LH_Qt_QSlider.h"
@@ -41,7 +42,7 @@ class LH_QtPlugin_Cursor: public LH_QtPlugin
 {
     Q_OBJECT
     int favourite_combo_step_;
-    QTime keyDelay;
+    QElapsedTimer keyDelay;
 
 protected:
     LH_Qt_bool *setup_enable_favourite_shortcut_;

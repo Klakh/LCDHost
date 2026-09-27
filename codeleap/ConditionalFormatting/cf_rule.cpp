@@ -32,6 +32,7 @@
   */
 
 #include <QDebug>
+#include <QRegularExpression>
 #include "cf_rule.h"
 
 // =================================================================================
@@ -102,17 +103,18 @@ bool cf_rule_condition::evaluate(cf_source_list sources, bool *ok)
 
     bool allNumeric = true;
 
-    QRegExp rx("^\\s*(-?[0-9]*(?:,?[0-9]{3})*(?:\\.[0-9]*)?)");
+    QRegularExpression rx("^\\s*(-?[0-9]*(?:,?[0-9]{3})*(?:\\.[0-9]*)?)");
+    QRegularExpressionMatch rxMatch;
     float sourceValF = 0; float value1F = 0; float value2F = 0;
 
-    if (rx.indexIn(sourceVal)!= -1)
-        sourceValF = rx.cap(1).toFloat(&allNumeric);
+    if ((rxMatch = rx.match(sourceVal)).hasMatch())
+        sourceValF = rxMatch.captured(1).toFloat(&allNumeric);
     else
         sourceValF = sourceVal.toFloat(&allNumeric);
 
     if(allNumeric) {
-        if (rx.indexIn(values_[0])!= -1)
-            value1F = rx.cap(1).toFloat(&allNumeric);
+        if ((rxMatch = rx.match(values_[0])).hasMatch())
+            value1F = rxMatch.captured(1).toFloat(&allNumeric);
         else
             value1F = values_[0].toFloat(&allNumeric);
     }
@@ -162,8 +164,8 @@ bool cf_rule_condition::evaluate(cf_source_list sources, bool *ok)
     if(test_=="Between") {
         if(ok!=NULL) *ok = true;
         if(allNumeric) {
-            if (rx.indexIn(values(1))!= -1)
-                value2F = rx.cap(1).toFloat(&allNumeric);
+            if ((rxMatch = rx.match(values(1))).hasMatch())
+                value2F = rxMatch.captured(1).toFloat(&allNumeric);
             else
                 value2F = values(1).toFloat(&allNumeric);
         }
@@ -176,8 +178,8 @@ bool cf_rule_condition::evaluate(cf_source_list sources, bool *ok)
     if(test_=="Is not between") {
         if(ok!=NULL) *ok = true;
         if(allNumeric) {
-            if (rx.indexIn(values(1))!= -1)
-                value2F = rx.cap(1).toFloat(&allNumeric);
+            if ((rxMatch = rx.match(values(1))).hasMatch())
+                value2F = rxMatch.captured(1).toFloat(&allNumeric);
             else
                 value2F = values(1).toFloat(&allNumeric);
         }

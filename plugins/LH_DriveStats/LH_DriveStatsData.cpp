@@ -20,7 +20,7 @@
 #include "LH_DriveStatsData.h"
 
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <algorithm>
 #include <QSettings>
 

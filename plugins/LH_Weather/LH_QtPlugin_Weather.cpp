@@ -28,7 +28,7 @@
 #include <QPainter>
 #include <QDesktopServices>
 #include <QDate>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QFile>
 #include <QDir>
 #include <QDateTime>
@@ -356,23 +356,24 @@ QDate LH_QtPlugin_Weather::toDate(QString str, bool isLong)
     QString ptn = "^([0-9]*) (\\w\\w\\w) ([0-9]*)$";
     if(isLong)
         ptn = "^\\w\\w\\w, ([0-9]*) (\\w\\w\\w) ([0-9]*) [0-9]*:[0-9]* \\w\\w.*$";
-    QRegExp re(ptn);
-    if (re.indexIn(str) != -1) {
-        int day = re.cap(1).toInt();
+    QRegularExpression re(ptn);
+    QRegularExpressionMatch reMatch;
+    if ((reMatch = re.match(str)).hasMatch()) {
+        int day = reMatch.captured(1).toInt();
         int month = 0;
-        if ( re.cap(2) == "Jan") month = 1; else
-        if ( re.cap(2) == "Feb") month = 2; else
-        if ( re.cap(2) == "Mar") month = 3; else
-        if ( re.cap(2) == "Apr") month = 4; else
-        if ( re.cap(2) == "May") month = 5; else
-        if ( re.cap(2) == "Jun") month = 6; else
-        if ( re.cap(2) == "Jul") month = 7; else
-        if ( re.cap(2) == "Aug") month = 8; else
-        if ( re.cap(2) == "Sep") month = 9; else
-        if ( re.cap(2) == "Oct") month = 10; else
-        if ( re.cap(2) == "Nov") month = 11; else
-        if ( re.cap(2) == "Dec") month = 12;
-        int year = re.cap(3).toInt();
+        if ( reMatch.captured(2) == "Jan") month = 1; else
+        if ( reMatch.captured(2) == "Feb") month = 2; else
+        if ( reMatch.captured(2) == "Mar") month = 3; else
+        if ( reMatch.captured(2) == "Apr") month = 4; else
+        if ( reMatch.captured(2) == "May") month = 5; else
+        if ( reMatch.captured(2) == "Jun") month = 6; else
+        if ( reMatch.captured(2) == "Jul") month = 7; else
+        if ( reMatch.captured(2) == "Aug") month = 8; else
+        if ( reMatch.captured(2) == "Sep") month = 9; else
+        if ( reMatch.captured(2) == "Oct") month = 10; else
+        if ( reMatch.captured(2) == "Nov") month = 11; else
+        if ( reMatch.captured(2) == "Dec") month = 12;
+        int year = reMatch.captured(3).toInt();
         return QDate(year,month,day);
     }
 
@@ -478,11 +479,12 @@ void LH_QtPlugin_Weather::parseXmlWeather(bool is5Day, QXmlStreamReader& xml_)
                 if (weather_data.url == "") //setup_current_url_->value() == ""
                 {
                     weather_data.url = xml_.text().toString(); //setup_current_url_->setValue();
-                    QRegExp re = QRegExp("(/([^/_]*)(?:_.|)\\.html)$");
-                    if (re.indexIn(xml_.text().toString()) != -1)
+                    QRegularExpression re = QRegularExpression("(/([^/_]*)(?:_.|)\\.html)$");
+                    QRegularExpressionMatch reMatch;
+                    if ((reMatch = re.match(xml_.text().toString())).hasMatch())
                     {
-                        if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Set 5dayid" << re.cap(2);
-                        setup_yahoo_5dayid_->setValue(re.cap(2));
+                        if(debugHTTP) qDebug() << "LH_QtPlugin_Weather: Set 5dayid" << reMatch.captured(2);
+                        setup_yahoo_5dayid_->setValue(reMatch.captured(2));
                     }
                 }
             }
@@ -610,17 +612,19 @@ QString LH_QtPlugin_Weather::getWeatherValue(QXmlStreamReader& xml_, QString att
 int LH_QtPlugin_Weather::toTime(QString time, bool isDateTime)
 {
     if (isDateTime) {
-        QRegExp re = QRegExp("^\\w\\w\\w, [0-9]* \\w\\w\\w [0-9]* ([0-9]*:[0-9]* \\w\\w).*$");
+        QRegularExpression re = QRegularExpression("^\\w\\w\\w, [0-9]* \\w\\w\\w [0-9]* ([0-9]*:[0-9]* \\w\\w).*$");
+        QRegularExpressionMatch reMatch;
         time = time.replace(re,"\\1");
     }
 
-    QRegExp re = QRegExp("^([0-9]*):([0-9]*) (\\w\\w)$");
-    if (re.indexIn(time) != -1) {
-         int hour = re.cap(1).toInt();
-         int minute = re.cap(2).toInt();
-         if ( re.cap(3) == "pm" && hour != 12 ) hour += 12;
+    QRegularExpression re = QRegularExpression("^([0-9]*):([0-9]*) (\\w\\w)$");
+    QRegularExpressionMatch reMatch;
+    if ((reMatch = re.match(time)).hasMatch()) {
+         int hour = reMatch.captured(1).toInt();
+         int minute = reMatch.captured(2).toInt();
+         if ( reMatch.captured(3) == "pm" && hour != 12 ) hour += 12;
          else
-             if ( re.cap(3) == "am" && hour == 12 ) hour -= 12;
+             if ( reMatch.captured(3) == "am" && hour == 12 ) hour -= 12;
          return hour*100 + minute;
     }
 

@@ -36,8 +36,8 @@ Please do **not** report security vulnerabilities in public issues, see
 
 ## Development setup
 
-See [Building from source](README.md#building-from-source). In short: Qt 5.15
-with `qtwebengine`, then `qmake ../LCDHost.pro -r` and `make` (or `nmake` on
+See [Building from source](README.md#building-from-source). In short: Qt 6
+(6.8 or later) with `qtwebengine`, then `qmake ../LCDHost.pro -r` and `make` (or `nmake` on
 Windows) from a separate build directory.
 
 Useful tips:

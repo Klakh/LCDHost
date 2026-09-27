@@ -31,11 +31,7 @@
 # define LH_LOGGER_EXPORT Q_DECL_IMPORT
 #endif
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 typedef QtMessageHandler lh_log_handler_t;
-#else
-typedef QtMsgHandler lh_log_handler_t;
-#endif
 
 class LH_LOGGER_EXPORT LH_Logger : public QObject
 {

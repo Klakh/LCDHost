@@ -15,8 +15,8 @@ The goal is to keep existing layouts working while bringing the code up to
 date. See the [roadmap](ROADMAP.md).
 
 > **Status:** early revival. The application builds and runs on Windows and
-> Linux with Qt 5.15. The Qt 6 port is in progress. Real hardware has not been
-> re-tested yet: reports from G15/G19 owners are very welcome.
+> Linux with Qt 6. Real hardware has not been re-tested yet: reports from
+> G15/G19 owners are very welcome.
 
 ## Features
 
@@ -47,13 +47,16 @@ On first start:
 
 ## Building from source
 
-Requirements: Qt **5.15** (with the `qtwebengine` module for the WebKit
-plugin) and a C++ compiler.
+Requirements: Qt **6.8 or later** (the CI uses 6.11) with the `qtwebengine`,
+`qtwebchannel` and `qtpositioning` modules for the WebKit plugin, and a C++17
+compiler. Install Qt with the [Qt online installer](https://www.qt.io/download-qt-installer-oss)
+or [aqtinstall](https://github.com/miurahr/aqtinstall), and put its `bin`
+directory in your `PATH`.
 
 ### Linux
 
 ```sh
-sudo apt-get install libudev-dev libgl1-mesa-dev
+sudo apt-get install build-essential libudev-dev libgl1-mesa-dev libxkbcommon-dev
 mkdir build && cd build
 qmake ../LCDHost.pro -r
 make -j"$(nproc)"
@@ -63,8 +66,8 @@ cp -r ../layouts LCDHost.app/
 
 ### Windows
 
-With Qt 5.15 (`win64_msvc2019_64`) and Visual Studio 2019 or 2022, from an
-"x64 Native Tools" command prompt:
+With Qt 6 (`msvc2022_64`) and Visual Studio 2022, from an "x64 Native Tools"
+command prompt:
 
 ```bat
 mkdir build && cd build

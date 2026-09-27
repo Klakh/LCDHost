@@ -27,7 +27,7 @@ AppClass::AppClass(AppLibrary *lib, const QString &id, const QString &path, cons
     seqno_(0),
     name_(name),
     size_(size),
-    path_(path.trimmed().split('/', QString::SkipEmptyParts))
+    path_(path.trimmed().split('/', Qt::SkipEmptyParts))
 {
     if(path_.isEmpty())
         path_.append( lib->name() );

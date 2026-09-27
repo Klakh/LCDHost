@@ -27,9 +27,9 @@ class AppGLWidget : public QGLWidget
 {
     Q_OBJECT
 public:
-    AppGLWidget( QGLContext * context, QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 )
+    AppGLWidget( QGLContext * context, QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = Qt::WindowFlags() )
         : QGLWidget(context,parent,shareWidget,f) {}
-    AppGLWidget( const QGLFormat & format, QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 )
+    AppGLWidget( const QGLFormat & format, QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = Qt::WindowFlags() )
         : QGLWidget(format,parent,shareWidget,f) {}
 
     void initializeGL()

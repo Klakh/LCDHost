@@ -25,6 +25,7 @@
   */
 
 #include "LH_QtPlugin_TS3.h"
+#include <QRegularExpression>
 
 LH_PLUGIN(LH_QtPlugin_TS3)
 
@@ -202,19 +203,22 @@ void LH_QtPlugin_TS3::TS3ConnectionError(QAbstractSocket::SocketError socketErro
 
 responseResult LH_QtPlugin_TS3::parseResult(QString msg)
 {
-    QRegExp rx("error id=(\\S+) msg=(\\S+)(?: extra_msg=(\\S+)){0,1}");
-    if(rx.indexIn(msg)==-1)
+    QRegularExpression rx("error id=(\\S+) msg=(\\S+)(?: extra_msg=(\\S+)){0,1}");
+    QRegularExpressionMatch rxMatch;
+    if(!(rxMatch = rx.match(msg)).hasMatch())
         return responseResult();
     else
-        return responseResult(true, (rx.cap(1)=="0"), (rx.cap(1).toInt()), rx.cap(2).replace("\\s"," "), rx.cap(3).replace("\\s"," "));
+        return responseResult(true, (rxMatch.captured(1)=="0"), (rxMatch.captured(1).toInt()), rxMatch.captured(2).replace("\\s"," "), rxMatch.captured(3).replace("\\s"," "));
 }
 
 void LH_QtPlugin_TS3::TS3DataReceived()
 {
     QString receivedMsg = QString::fromUtf8(socket_->readAll());
-    //QRegExp rxSCHandler("selected schandlerid=([0-9]*)");
-    QRegExp rxNotify("notify(\\w*) schandlerid=([0-9]*) (.*)");
-    QRegExp rxMyID("clid=([0-9]*) cid=([0-9]*)");
+    //QRegularExpression rxSCHandler("selected schandlerid=([0-9]*)");
+    QRegularExpression rxNotify("notify(\\w*) schandlerid=([0-9]*) (.*)");
+    QRegularExpressionMatch rxNotifyMatch;
+    QRegularExpression rxMyID("clid=([0-9]*) cid=([0-9]*)");
+    QRegularExpressionMatch rxMyIDMatch;
     responseResult result = parseResult(receivedMsg);
 
     if(result.isResult && !result.isValid)
@@ -236,12 +240,12 @@ void LH_QtPlugin_TS3::TS3DataReceived()
             // Q_ASSERT(false);
         }
     }
-    else if(rxNotify.indexIn(receivedMsg)!=-1)
+    else if((rxNotifyMatch = rxNotify.match(receivedMsg)).hasMatch())
     {
-        if(rxNotify.cap(1)=="talkstatuschange")
-            talkChanged(rxNotify.cap(3));
-        if(QString("clientleftview,cliententerview,clientupdated,clientmoved").split(',').contains(rxNotify.cap(1)) ||
-           QString("channelcreated,channeledited,channeldeleted,channelmoved").split(',').contains(rxNotify.cap(1)) )
+        if(rxNotifyMatch.captured(1)=="talkstatuschange")
+            talkChanged(rxNotifyMatch.captured(3));
+        if(QString("clientleftview,cliententerview,clientupdated,clientmoved").split(',').contains(rxNotifyMatch.captured(1)) ||
+           QString("channelcreated,channeledited,channeldeleted,channelmoved").split(',').contains(rxNotifyMatch.captured(1)) )
         {
 #ifndef TS3_USER_DEFINED_UID
             request_WhoAmI();
@@ -262,9 +266,9 @@ void LH_QtPlugin_TS3::TS3DataReceived()
 #endif
         break;
     case sa_whoami_pending:
-        if(rxMyID.indexIn(receivedMsg)!=-1)
+        if((rxMyIDMatch = rxMyID.match(receivedMsg)).hasMatch())
         {
-            myclid_ = rxMyID.cap(1).toInt();
+            myclid_ = rxMyIDMatch.captured(1).toInt();
             updateMyDetails();
             request_ChannelList();
         }
@@ -328,17 +332,18 @@ int LH_QtPlugin_TS3::sendMessage(QString msg)
 
 void LH_QtPlugin_TS3::talkChanged(QString params)
 {
-    QRegExp rx("status=([0-9]*) isreceivedwhisper=([0-9]*) clid=([0-9]*)");
+    QRegularExpression rx("status=([0-9]*) isreceivedwhisper=([0-9]*) clid=([0-9]*)");
+    QRegularExpressionMatch rxMatch;
 
     bool status = false;
     // bool whisper = false;
     int clid = -1;
 
-    if(rx.indexIn(params)!=-1)
+    if((rxMatch = rx.match(params)).hasMatch())
     {
-        status = (rx.cap(1).toInt()==1);
-        // whisper = (rx.cap(2).toInt()==1);
-        clid = rx.cap(3).toInt();
+        status = (rxMatch.captured(1).toInt()==1);
+        // whisper = (rxMatch.captured(2).toInt()==1);
+        clid = rxMatch.captured(3).toInt();
     }
 
     if(status)

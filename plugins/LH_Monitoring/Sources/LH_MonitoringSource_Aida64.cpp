@@ -18,7 +18,7 @@
 */
 
 #include "LH_MonitoringSource_Aida64.h"
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSharedMemory>
 
 #ifdef Q_OS_WIN
@@ -46,8 +46,8 @@ bool LH_MonitoringSource_Aida64::doUpdate()
         if (aidaData) {
             aidaXml_.setContent(QString("<data>%1</data>").arg(QString(aidaData)));
 
-            QRegExp rx = QRegExp("([^0-9]*)([0-9]+#?\\s?)(.*)");
-            rx.setPatternSyntax(QRegExp::RegExp2);
+            QRegularExpression rx = QRegularExpression("([^0-9]*)([0-9]+#?\\s?)(.*)");
+            QRegularExpressionMatch rxMatch;
 
             QDomNode n = aidaXml_.documentElement().firstChild();
             while(!n.isNull()) {
@@ -61,7 +61,7 @@ bool LH_MonitoringSource_Aida64::doUpdate()
 
                         QString typeName = e.tagName();
                         QString itemName = labelNodes.at(0).toElement().text();
-                        QString groupName = (rx.indexIn(reverse(itemName))==-1 ? itemName : reverse(rx.cap(3)) + reverse(rx.cap(1)) );
+                        QString groupName = (!(rxMatch = rx.match(reverse(itemName))).hasMatch() ? itemName : reverse(rxMatch.captured(3)) + reverse(rxMatch.captured(1)) );
                         QString valueString = valueNodes.at(0).toElement().text();
                         QString units="";
 

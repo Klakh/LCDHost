@@ -35,10 +35,8 @@
 #ifndef WEBKITREQUEST_H
 #define WEBKITREQUEST_H
 
-#include <QtWebEngine>
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+#include <QtWebEngineCore>
 # include <QtWebEngineWidgets/QtWebEngineWidgets>
-#endif
 #include <QtNetwork>
 
 #include <QObject>

@@ -54,11 +54,7 @@ AppDebugDialog::AppDebugDialog(MainWindow *parent) :
 
     ui->appStateTree->setUniformRowHeights(true);
     ui->appStateTree->setHeaderHidden(true);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     ui->appStateTree->header()->setSectionResizeMode( QHeaderView::ResizeToContents );
-#else
-    ui->appStateTree->header()->setResizeMode( QHeaderView::ResizeToContents );
-#endif
 
     connect( ui->appStateTree, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
              this, SLOT(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)) );

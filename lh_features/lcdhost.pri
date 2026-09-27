@@ -134,10 +134,7 @@ defineReplace(lh_destdir) {
             }
         }
 
-        greaterThan(QT_MAJOR_VERSION, 4) {
-            contains(QT, gui): QT*=widgets
-            contains(QT, webengine): QT*=webenginewidgets
-        }
+        contains(QT, gui): QT*=widgets
 
         export(CONFIG)
         export(QT)

@@ -21,6 +21,7 @@
 #define LIBOBJECT_H
 
 #include <QObject>
+#include <QElapsedTimer>
 #include <QString>
 #include <QMutex>
 #include <QList>
@@ -41,7 +42,7 @@ class LibObject : public QObject
     Q_OBJECT
 
     AppId id_;
-    QTime cbtime_; // rate limit timer
+    QElapsedTimer cbtime_; // rate limit timer
     unsigned cbcount_; // rate limit counter
     lh_systemstate state_;
     const void *obj_;

@@ -836,7 +836,7 @@ void LH_Graph::updateLinesList(bool fullResync)
 
 void LH_Graph::addMissingConfigs()
 {
-    QStringList configs = setup_line_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_line_configs_->value().split('~',Qt::SkipEmptyParts);
     if (configs.length()<lineConfigsCount())
     {
         QString configString = buildColorConfig();
@@ -943,7 +943,7 @@ void LH_Graph::loadColors(int lineID, QColor& penColor, QColor& fillColor1, QCol
     Q_ASSERT_X(lineID!=-1, "LH_Graph::loadColors", "Illegal line id!");
 
     if (isDebug) qDebug() << "graph: load colours: begin " << lineID;
-    QStringList configs = setup_line_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_line_configs_->value().split('~',Qt::SkipEmptyParts);
 
     if( lineID < 0 ) lineID = 0;
 
@@ -1084,7 +1084,7 @@ void LH_Graph::changeSelectedLine()
 
 void LH_Graph::updateSelectedLine()
 {
-    QStringList configs = setup_line_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_line_configs_->value().split('~',Qt::SkipEmptyParts);
 
     int lineID = setup_line_selection_->value();
     if( lineID >= 0 && lineID < configs.length())

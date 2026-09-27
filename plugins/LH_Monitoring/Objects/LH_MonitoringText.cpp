@@ -29,7 +29,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QTime>
-#include <QRegExp>
+#include <QRegularExpression>
 
 #include "LH_MonitoringText.h"
 
@@ -127,7 +127,7 @@ void LH_MonitoringText::updateText()
         if(setup_value_round_->value())
             val = QString::number(numericValue,'f',0);
         else
-            val = QString::number(numericValue,'f',6).replace(QRegExp("\\.?0*$"),"");
+            val = QString::number(numericValue,'f',6).replace(QRegularExpression("\\.?0*$"),"");
     }
 
     units = (!setup_append_units_->value()? "" : units);

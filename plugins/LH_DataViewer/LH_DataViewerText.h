@@ -26,6 +26,7 @@
 #define LH_DATAVIEWERTEXT_H
 
 #include "LH_Text/LH_Text.h"
+#include <QElapsedTimer>
 #include "LH_Qt_int.h"
 
 #include "LH_DataViewerData.h"
@@ -35,8 +36,8 @@ class LH_DataViewerText : public LH_Text
 {
     Q_OBJECT
     LH_DataViewerData data_;
-    QTime updateTimer_;
-    QTime scrollTimer_;
+    QElapsedTimer updateTimer_;
+    QElapsedTimer scrollTimer_;
     int scroll_poll_;
 protected:
     LH_Qt_QString *setup_lookup_code_;

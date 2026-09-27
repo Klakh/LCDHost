@@ -225,7 +225,7 @@ void LH_Dial::addNeedle(QString name, QColor defaultColor)
 
 void LH_Dial::syncNeedleConfigs(QColor defaultColor)
 {
-    QStringList configs = setup_needle_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_needle_configs_->value().split('~',Qt::SkipEmptyParts);
     if (configs.length()<needleCount())
     {
         QColor newColor = defaultColor;
@@ -1211,14 +1211,14 @@ void LH_Dial::loadNeedleConfig(int needleID, int& needleStyle, QColor& needleCol
 {
     if (isDebug) qDebug() << "dial: load needle config: begin " << needleID;
 
-    QStringList configs = setup_needle_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_needle_configs_->value().split('~',Qt::SkipEmptyParts);
 
     if( needleID < 0 ) needleID = 0;
     if( needleID >= configs.length() )
     {
         qDebug() << "LH_Dial: Error in needle data request: requested " << needleID+1 << ", max = " << configs.length();
         syncNeedleConfigs();
-        configs = setup_needle_configs_->value().split('~',QString::SkipEmptyParts);
+        configs = setup_needle_configs_->value().split('~',Qt::SkipEmptyParts);
         qDebug() << "LH_Dial: Resynced needle data: new max = " << configs.length();
 
         if( needleID >= configs.length() ) needleID = configs.length();
@@ -1283,7 +1283,7 @@ void LH_Dial::changeSelectedNeedle()
 
 void LH_Dial::updateSelectedNeedle()
 {
-    QStringList configs = setup_needle_configs_->value().split('~',QString::SkipEmptyParts);
+    QStringList configs = setup_needle_configs_->value().split('~',Qt::SkipEmptyParts);
 
     int needleID = setup_needle_selection_->value();
     if( needleID < 0 ) needleID = 0;

@@ -25,7 +25,7 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 
 // #include <stdio.h>
 // #include <windows.h>
@@ -90,35 +90,36 @@ public:
         QString templateResult = QString(lookupTemplate);
 
         // look for the old index-style references, e.g. {0} {2} {34}
-        QRegExp rx = QRegExp("\\{([0-9]*)\\}");
+        QRegularExpression rx = QRegularExpression("\\{([0-9]*)\\}");
+        QRegularExpressionMatch rxMatch;
         bool blankValues = true;
         int hitCount = templateResult.count(rx);
-        while (rx.indexIn(templateResult) != -1)
+        while ((rxMatch = rx.match(templateResult)).hasMatch())
         {
-            QString strVal = getValueText(rx.cap(1).toInt(), getNames);
+            QString strVal = getValueText(rxMatch.captured(1).toInt(), getNames);
             if (strVal!="") blankValues = false;
-            templateResult.replace(rx.cap(0), strVal);
+            templateResult.replace(rxMatch.captured(0), strVal);
         }
 
         // look for new address-based references, e.g. {player.name}
-        rx = QRegExp("\\{([a-zA-Z0-9.[\\]]*(?:@[a-zA-Z0-9]+)?)\\}");
+        rx = QRegularExpression("\\{([a-zA-Z0-9.[\\]]*(?:@[a-zA-Z0-9]+)?)\\}");
         hitCount += templateResult.count(rx);
-        while (rx.indexIn(templateResult) != -1)
+        while ((rxMatch = rx.match(templateResult)).hasMatch())
         {
-            QString strVal = getValueText(rx.cap(1), getNames);
+            QString strVal = getValueText(rxMatch.captured(1), getNames);
             if (strVal!="") blankValues = false;
-            templateResult.replace(rx.cap(0), strVal);
+            templateResult.replace(rxMatch.captured(0), strVal);
         }
 
         if(!getNames)
         {
             // look for formatting commands, e.g. {=<something>:%.2f}
-            rx = QRegExp("\\{=([^}=:]*)(?:\\:(.*))?\\}");
+            rx = QRegularExpression("\\{=([^}=:]*)(?:\\:(.*))?\\}");
             hitCount += templateResult.count(rx);
-            while (rx.indexIn(templateResult) != -1)
+            while ((rxMatch = rx.match(templateResult)).hasMatch())
             {
-                QString strVal = parseMath(rx.cap(1),0,rx.cap(2));
-                templateResult.replace(rx.cap(0), strVal);
+                QString strVal = parseMath(rxMatch.captured(1),0,rxMatch.captured(2));
+                templateResult.replace(rxMatch.captured(0), strVal);
             }
         }
 
@@ -158,7 +159,8 @@ public:
             QString attrName = "";
             QStringList path = valueAddress.split(".");
             dataNode* curNode = rootNode;
-            QRegExp rx("^(.*)\\[([0-9]+)\\]$");
+            QRegularExpression rx("^(.*)\\[([0-9]+)\\]$");
+            QRegularExpressionMatch rxMatch;
             while (path.length()!=0)
             {
                 QString nodeName = path.first();
@@ -172,10 +174,10 @@ public:
                 }
 
                 int nodeIndex = 0;
-                if(rx.indexIn(nodeName) != -1)
+                if((rxMatch = rx.match(nodeName)).hasMatch())
                 {
-                    nodeName = rx.cap(1);
-                    nodeIndex = rx.cap(2).toInt();
+                    nodeName = rxMatch.captured(1);
+                    nodeIndex = rxMatch.captured(2).toInt();
                 }
 
                 if(!curNode->contains(nodeName))
@@ -205,13 +207,14 @@ public:
         }
         //qDebug() << "Parse Math: in: " << mathString;
 
-        QRegExp rx = QRegExp("\\(([^)=]*)\\)");
+        QRegularExpression rx = QRegularExpression("\\(([^)=]*)\\)");
+        QRegularExpressionMatch rxMatch;
         qreal fltVal = 0;
         int loopCount = 0;
-        while (rx.indexIn(mathString) != -1)
+        while ((rxMatch = rx.match(mathString)).hasMatch())
         {
-            QString strVal = parseMath(rx.cap(1), depth + 1);
-            mathString.replace(rx.cap(0), strVal);
+            QString strVal = parseMath(rxMatch.captured(1), depth + 1);
+            mathString.replace(rxMatch.captured(0), strVal);
             if (++loopCount >=100)
             {
                 qWarning() << "Parser Loops >100: Aborted parse. " << mathString;
@@ -220,18 +223,18 @@ public:
         }
 
         loopCount = 0;
-        rx = QRegExp("(-?[0-9]*(?:\\.[0-9]*)?)\\s*(\\*|/)\\s*(-?[0-9]*(?:\\.[0-9]*)?)");
-        while (rx.indexIn(mathString) != -1)
+        rx = QRegularExpression("(-?[0-9]*(?:\\.[0-9]*)?)\\s*(\\*|/)\\s*(-?[0-9]*(?:\\.[0-9]*)?)");
+        while ((rxMatch = rx.match(mathString)).hasMatch())
         {
-            //qDebug() << "Parse Math: action: [" << rx.cap(1) << "] [" << rx.cap(2) << "] [" << rx.cap(3) << "]";
-            if (rx.cap(2)=="*")
-                fltVal = rx.cap(1).toFloat() * rx.cap(3).toFloat(); else
-            if (rx.cap(2)=="/" && rx.cap(3).toFloat()!=0)
-                fltVal = rx.cap(1).toFloat() / rx.cap(3).toFloat(); else
-            if (rx.cap(2)=="/" && rx.cap(3).toFloat()==0)
+            //qDebug() << "Parse Math: action: [" << rxMatch.captured(1) << "] [" << rxMatch.captured(2) << "] [" << rxMatch.captured(3) << "]";
+            if (rxMatch.captured(2)=="*")
+                fltVal = rxMatch.captured(1).toFloat() * rxMatch.captured(3).toFloat(); else
+            if (rxMatch.captured(2)=="/" && rxMatch.captured(3).toFloat()!=0)
+                fltVal = rxMatch.captured(1).toFloat() / rxMatch.captured(3).toFloat(); else
+            if (rxMatch.captured(2)=="/" && rxMatch.captured(3).toFloat()==0)
                 fltVal = 0;
 
-            mathString.replace(rx.cap(0), QString::number(fltVal));
+            mathString.replace(rxMatch.captured(0), QString::number(fltVal));
             if (++loopCount >=100)
             {
                 qWarning() << "Parser Loops >100: Aborted parse. " << mathString;
@@ -240,16 +243,16 @@ public:
         }
 
         loopCount = 0;
-        rx = QRegExp("(-?(?:[0-9]*\\.)?[0-9]{1,})\\s*(\\+|\\-)\\s*(-?(?:[0-9]*\\.)?[0-9]{1,})");
-        while (rx.indexIn(mathString) != -1)
+        rx = QRegularExpression("(-?(?:[0-9]*\\.)?[0-9]{1,})\\s*(\\+|\\-)\\s*(-?(?:[0-9]*\\.)?[0-9]{1,})");
+        while ((rxMatch = rx.match(mathString)).hasMatch())
         {
-            //qDebug() << "Parse Math: action: [" << rx.cap(1) << "] [" << rx.cap(2) << "] [" << rx.cap(3) << "]";
-            if (rx.cap(2)=="+")
-                fltVal = rx.cap(1).toFloat() + rx.cap(3).toFloat();
-            if (rx.cap(2)=="-")
-                fltVal = rx.cap(1).toFloat() - rx.cap(3).toFloat();
+            //qDebug() << "Parse Math: action: [" << rxMatch.captured(1) << "] [" << rxMatch.captured(2) << "] [" << rxMatch.captured(3) << "]";
+            if (rxMatch.captured(2)=="+")
+                fltVal = rxMatch.captured(1).toFloat() + rxMatch.captured(3).toFloat();
+            if (rxMatch.captured(2)=="-")
+                fltVal = rxMatch.captured(1).toFloat() - rxMatch.captured(3).toFloat();
 
-            mathString.replace(rx.cap(0), QString::number(fltVal));
+            mathString.replace(rxMatch.captured(0), QString::number(fltVal));
             if (++loopCount >=100)
             {
                 qWarning() << "Parser Loops >100: Aborted parse. " << mathString;
@@ -260,9 +263,7 @@ public:
 
         if (formatting!="")
         {
-            QString strVal;
-            strVal.sprintf(formatting.toLatin1().data(),mathString.toFloat());
-            mathString = strVal;
+            mathString = QString::asprintf(formatting.toLatin1().constData(), mathString.toFloat());
         }
 
         //qDebug() << "Parse Math: out: " << mathString;

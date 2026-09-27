@@ -41,7 +41,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QTime>
-#include <QRegExp>
+#include <QRegularExpression>
 
 #include "LH_Text/LH_Text.h"
 

@@ -142,7 +142,7 @@ int AppRawInput::columnCount( const QModelIndex &parent) const
 Qt::ItemFlags AppRawInput::flags( const QModelIndex & index ) const
 {
     if( index.isValid() ) return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
-    return 0;
+    return Qt::NoItemFlags;
 }
 
 QVariant AppRawInput::headerData( int section, Qt::Orientation orientation, int role ) const

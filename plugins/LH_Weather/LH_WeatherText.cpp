@@ -25,7 +25,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QTime>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSharedMemory>
 
 #include <stdio.h>
@@ -185,28 +185,29 @@ QString LH_WeatherText::getSelectedValueText()
     if(selValue == "Astronomy: Sunrise")                {valueText = weather_data.astronomy.sunrise; units = unit_none;}
     if(selValue == "Astronomy: Sunset")                 {valueText = weather_data.astronomy.sunset; units = unit_none;}
 
-    QRegExp rx("Forecast Day ([1-5])[^:]*: (.*)");
-    if(rx.indexIn(selValue) != -1)
+    QRegularExpression rx("Forecast Day ([1-5])[^:]*: (.*)");
+    QRegularExpressionMatch rxMatch;
+    if((rxMatch = rx.match(selValue)).hasMatch())
     {
-        int i = rx.cap(1).toInt()-1;
+        int i = rxMatch.captured(1).toInt()-1;
         units = unit_none;
-        if(rx.cap(2) == "Day")
+        if(rxMatch.captured(2) == "Day")
             valueText = weather_data.forecast[i].day;
-        if(rx.cap(2) == "\"Today\"/\"Tonight\"" || rx.cap(2) == "\"Tomorrow\"")
+        if(rxMatch.captured(2) == "\"Today\"/\"Tonight\"" || rxMatch.captured(2) == "\"Tomorrow\"")
             valueText = weather_data.forecast[i].relativeDay;
-        if(rx.cap(2) == "Date")
+        if(rxMatch.captured(2) == "Date")
             valueText = weather_data.forecast[i].date;
-        if(rx.cap(2) == "Low") {
+        if(rxMatch.captured(2) == "Low") {
             valueText = weather_data.forecast[i].low;
             units = unit_temp;
         }
-        if(rx.cap(2) == "High") {
+        if(rxMatch.captured(2) == "High") {
             valueText = weather_data.forecast[i].high;
             units = unit_temp;
         }
-        if(rx.cap(2) == "Description")
+        if(rxMatch.captured(2) == "Description")
             valueText = weather_data.forecast[i].text;
-        if(rx.cap(2) == "Image Code")
+        if(rxMatch.captured(2) == "Image Code")
             valueText = weather_data.forecast[i].code;
     }
 

@@ -39,7 +39,7 @@ class AppRawInputDialog : public QDialog
 
 
 public:
-    AppRawInputDialog(bool as_value = false, QWidget * parent = 0, Qt::WindowFlags f = 0);
+    AppRawInputDialog(bool as_value = false, QWidget * parent = 0, Qt::WindowFlags f = Qt::WindowFlags());
 
     QString description() const { return description_; }
     QString control() const { return control_; }

@@ -24,12 +24,13 @@
 #define LH_QTPLUGIN_WEBKIT_H
 
 #include <QProcess>
+#include <QElapsedTimer>
 #include <QTime>
 #include "LH_QtPlugin.h"
 
 class LH_QtPlugin_WebKit : public LH_QtPlugin
 {
-    QTime last_start_;
+    QElapsedTimer last_start_;
 
 public:
     LH_QtPlugin_WebKit() : LH_QtPlugin() {}

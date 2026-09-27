@@ -120,8 +120,8 @@ class cf_rule_action_property: public cf_rule_action
     {
         if(!file.isFile())
             return "";
-        QStringList absoluteDirectories = file.absoluteFilePath().split( '/', QString::SkipEmptyParts );
-        QStringList relativeDirectories = relativeTo.split( '/', QString::SkipEmptyParts );
+        QStringList absoluteDirectories = file.absoluteFilePath().split( '/', Qt::SkipEmptyParts );
+        QStringList relativeDirectories = relativeTo.split( '/', Qt::SkipEmptyParts );
 
         //Get the shortest of the two paths
         int length = relativeDirectories.count() < absoluteDirectories.count() ? relativeDirectories.count() : absoluteDirectories.count();

@@ -17,6 +17,7 @@
 */
 
 #include "Player.h"
+#include <QRegularExpression>
 #include <QDebug>
 #include <QFile>
 
@@ -86,9 +87,9 @@ QString CPlayer::replace_tokens(QString str, bool hidePlayingState)
 
 void CPlayer::replace_token(QString &str, QString token, QString val)
 {
-    QRegExp re1(QString("\\{%1\\}").arg(token));
+    QRegularExpression re1(QString("\\{%1\\}").arg(token));
     str = str.replace(re1, val);
-    QRegExp re2(QString("\\{%1\\?([^}]*)\\}").arg(token));
+    QRegularExpression re2(QString("\\{%1\\?([^}]*)\\}").arg(token));
     if(val.trimmed()!="")
         str = str.replace(re2, "\\1");
     else

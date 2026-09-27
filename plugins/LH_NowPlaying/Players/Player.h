@@ -35,7 +35,7 @@
 #include <winuser.h>
 
 #include <QString>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTime>
 
 //#include "Cover.h"

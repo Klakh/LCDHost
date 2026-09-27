@@ -18,7 +18,7 @@
 */
 
 #include "LH_NowPlayingRemoteControl.h"
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QProcess>
 
 LH_PLUGIN_CLASS(LH_NowPlayingRemoteControl)

@@ -1,6 +1,6 @@
 TARGET = WebKitServer
 TEMPLATE = app
-QT += network webengine
+QT += network webenginewidgets
 CONFIG -= app_bundle
 INCLUDEPATH *= $$dirname(PWD)
 # CONFIG += lh_logger

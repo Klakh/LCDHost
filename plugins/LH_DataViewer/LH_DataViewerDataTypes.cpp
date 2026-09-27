@@ -295,7 +295,7 @@ void dataNode::resetCursors()
 
 dataNode::dataNode(dataNode* parentNode, itemDefinition def, QString nodeValue )
 {
-    mutex = new QMutex(QMutex::Recursive);
+    mutex = new QRecursiveMutex();
     value_ = nodeValue;
     definition_ = def;
     parentNode_ = parentNode;
@@ -555,7 +555,7 @@ uint dataNode::memoryAddress()
     if(definition_.startAddress.contains("+"))
     {
         uint moduleAddress;
-        QStringList baseParts = definition_.startAddress.split('+',QString::SkipEmptyParts);
+        QStringList baseParts = definition_.startAddress.split('+',Qt::SkipEmptyParts);
         if(getModuleAddress(baseParts.at(0), moduleAddress))
         {
             sscanf(baseParts.at(1).toLatin1().data(), "%x", &addressVal);

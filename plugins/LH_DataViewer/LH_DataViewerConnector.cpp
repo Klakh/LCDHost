@@ -23,6 +23,7 @@
   */
 
 #include "LH_DataViewerConnector.h"
+#include <QRegularExpression>
 #include <QDebug>
 #include <QPainter>
 #include <QStringList>
@@ -131,7 +132,8 @@ QStringList LH_DataViewerConnector::listLanguages()
     layoutDir.setNameFilters(filters);
     QFileInfoList langFiles = layoutDir.entryInfoList(QDir::Files);
 
-    QRegExp rxList("lists\\.(.*)\\.txt");
+    QRegularExpression rxList("lists\\.(.*)\\.txt");
+    QRegularExpressionMatch rxListMatch;
     foreach(QFileInfo f, langFiles)
     {
         QString fileName = f.fileName();
@@ -187,21 +189,23 @@ QString LH_DataViewerConnector::getTextValue(QStringList lines, itemDefinition d
 QString LH_DataViewerConnector::formatData(QString data, QString formatting)
 {
     QString result = data;
-    QRegExp rxList("list:(.*),(.*)");
+    QRegularExpression rxList("list:(.*),(.*)");
+    QRegularExpressionMatch rxListMatch;
     if (formatting!="")
     {
         if (formatting.startsWith("rx:"))
         {
-            QRegExp rx = QRegExp(formatting.mid(3));
+            QRegularExpression rx = QRegularExpression(formatting.mid(3));
+            QRegularExpressionMatch rxMatch;
             if(rx.captureCount()!=0)
                 result = result.replace(rx,"\\1").trimmed();
             else
                 result = result.remove(rx).trimmed();
         } else
-        if (rxList.indexIn(formatting)!=-1)
+        if ((rxListMatch = rxList.match(formatting)).hasMatch())
         {
-            QString segmentName = rxList.cap(1).toLower();
-            int listIndex    = rxList.cap(2).toInt();
+            QString segmentName = rxListMatch.captured(1).toLower();
+            int listIndex    = rxListMatch.captured(2).toInt();
             qreal levelVal   = result.toFloat();
 
             if(!lists_.contains(segmentName))
@@ -282,17 +286,17 @@ void LH_DataViewerConnector::sourceFileChanged()
 
 MemoryDataType LH_DataViewerConnector::ToMemType(QString s)
 {
-    if(s.contains(QRegExp("^\\s*(4\\s?Byte|Int(eger)?)\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(4\\s?Byte|Int(eger)?)\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_4BYTE;
-    if(s.contains(QRegExp("^\\s*(8\\s?Byte|Long(\\s?Long))\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(8\\s?Byte|Long(\\s?Long))\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_8BYTE;
-    if(s.contains(QRegExp("^\\s*(Float)\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(Float)\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_FLOAT;
-    if(s.contains(QRegExp("^\\s*(Double)\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(Double)\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_DOUBLE;
-    if(s.contains(QRegExp("^\\s*(Text([-_]?\\s*U(ni(code)?)?)?)\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(Text([-_]?\\s*U(ni(code)?)?)?)\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_TEXT_UNICODE;
-    if(s.contains(QRegExp("^\\s*(Text([-_]?\\s*A(sc(ii)?)?)?)\\s*$",Qt::CaseInsensitive)))
+    if(s.contains(QRegularExpression("^\\s*(Text([-_]?\\s*A(sc(ii)?)?)?)\\s*$", QRegularExpression::CaseInsensitiveOption)))
         return MEMTYPE_TEXT_ASCII;
     qWarning() << QString("LH_DataViewer: \"%1\" is not recognised as a data type").arg(s);
     return MEMTYPE_NONE;
@@ -315,10 +319,11 @@ void LH_DataViewerConnector::mapFileChanged()
         {
             dataNode *currentNode = rootNode;
             QTextStream stream(&file);
-            QRegExp rx = QRegExp(";.*$");
+            QRegularExpression rx = QRegularExpression(";.*$");
+            QRegularExpressionMatch rxMatch;
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',QString::SkipEmptyParts);
+            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
 
             itemDefinitions_.clear();
             lists_.clear();
@@ -349,17 +354,17 @@ void LH_DataViewerConnector::mapFileChanged()
                         segment = item.toLower();
                         if(segment.startsWith("[list:"))
                         {
-                            segmentName = QString(segment).replace(QRegExp("\\[list:(.*)\\]") , "\\1" );
+                            segmentName = QString(segment).replace(QRegularExpression("\\[list:(.*)\\]") , "\\1" );
                             if (!lists_.contains(segmentName)) lists_.insert(segmentName, new thresholdList() );
                         }
                         if(segment.startsWith("[definition:"))
                         {
-                            segmentName = QString(segment).replace(QRegExp("\\[definition:(.*)\\]") , "\\1" );
+                            segmentName = QString(segment).replace(QRegularExpression("\\[definition:(.*)\\]") , "\\1" );
                             currentNode = currentNode->addChild(segmentName);
                         }
                         if(segment.startsWith("[/definition:"))
                         {
-                            segmentName = QString(segment).replace(QRegExp("\\[definition:(.*)\\]") , "\\1" );
+                            segmentName = QString(segment).replace(QRegularExpression("\\[definition:(.*)\\]") , "\\1" );
                             currentNode = currentNode->parentNode();
                             if(currentNode->name()=="")
                                 segment="";
@@ -406,7 +411,7 @@ void LH_DataViewerConnector::mapFileChanged()
                     {
                         thresholdItem newLevel;
                         //qDebug() << "Add list entry : " << item;
-                        newLevel.levelNames = item.split('\t',QString::SkipEmptyParts);
+                        newLevel.levelNames = item.split('\t',Qt::SkipEmptyParts);
                         newLevel.levelBase = newLevel.levelNames.at(0).trimmed().toFloat();
                         lists_.value(segmentName)->levels.append(newLevel);
                     } else
@@ -421,12 +426,13 @@ void LH_DataViewerConnector::mapFileChanged()
                     } else
                     if(segment.startsWith("[definition:"))
                     {
-                        QStringList parts = item.split('\t',QString::SkipEmptyParts);
+                        QStringList parts = item.split('\t',Qt::SkipEmptyParts);
                         if((parts.count()>=2 && sourceType_ == SOURCETYPE_TXT) || (parts.count()>=3 && sourceType_ == SOURCETYPE_MEM))
                         {
-                            QRegExp rx("^\"(.*)\"$");
-                            if (rx.indexIn(parts.at(1).trimmed()) != -1)
-                                currentNode->addChild( parts.at(0).trimmed(), rx.cap(1) );
+                            QRegularExpression rx("^\"(.*)\"$");
+                            QRegularExpressionMatch rxMatch;
+                            if ((rxMatch = rx.match(parts.at(1).trimmed())).hasMatch())
+                                currentNode->addChild( parts.at(0).trimmed(), rxMatch.captured(1) );
                             else
                             {
                                 if (sourceType_ == SOURCETYPE_TXT)
@@ -440,7 +446,7 @@ void LH_DataViewerConnector::mapFileChanged()
                                     ));
                                 if (sourceType_ == SOURCETYPE_MEM)
                                 {
-                                    QStringList memAddress = parts.at(1).trimmed().split('>',QString::SkipEmptyParts);
+                                    QStringList memAddress = parts.at(1).trimmed().split('>',Qt::SkipEmptyParts);
                                     QList<uint> offsets;
                                     if(memAddress.count()>1)
                                     {
@@ -474,7 +480,7 @@ void LH_DataViewerConnector::mapFileChanged()
                     } else
                     if(segment=="[definitions]")
                     {
-                        QStringList parts = item.split('\t',QString::SkipEmptyParts);
+                        QStringList parts = item.split('\t',Qt::SkipEmptyParts);
                         if(parts.count()>=2)
                         {
                             itemDefinition def;
@@ -495,7 +501,7 @@ void LH_DataViewerConnector::mapFileChanged()
                     } else
                     if(segment=="[parsing]") {
                         //rules for reinterpreting parsed data loaded here
-                        QStringList parts = item.split('\t',QString::SkipEmptyParts);
+                        QStringList parts = item.split('\t',Qt::SkipEmptyParts);
                         if(parts.count()>=1)
                             parsingList.append(parts);
                     } else
@@ -528,7 +534,7 @@ void LH_DataViewerConnector::sourceFileUpdated(const QString &path)
         if( file.open( QIODevice::ReadOnly) )
         {
             QTextStream stream(&file);
-            stream.setCodec("UTF-8");
+            stream.setEncoding(QStringConverter::Utf8);
             stream.setAutoDetectUnicode(true);
             fileContent = stream.readAll();
             file.close();
@@ -537,7 +543,7 @@ void LH_DataViewerConnector::sourceFileUpdated(const QString &path)
         case SOURCETYPE_TXT:
         case SOURCETYPE_INI:
             {
-                QStringList sourceLines = fileContent.split('\r',QString::SkipEmptyParts);
+                QStringList sourceLines = fileContent.split('\r',Qt::SkipEmptyParts);
 
                 if (isSingleWrite_ || sourceLines.count()>=completeCount_)
                 {
@@ -628,7 +634,8 @@ void LH_DataViewerConnector::updateNodes(QStringList sourceLines)
 {
     dataNode* currentNode = rootNode;
     currentNode->resetCursors();
-    QRegExp rx = QRegExp(";.*$");
+    QRegularExpression rx = QRegularExpression(";.*$");
+    QRegularExpressionMatch rxMatch;
     for(int i=0; i<sourceLines.count(); i++)
     {
         //QString removedPart = line.right(line.length() - line.indexOf(rx)).trimmed();
@@ -636,7 +643,7 @@ void LH_DataViewerConnector::updateNodes(QStringList sourceLines)
         line = line.remove(rx).trimmed();
         if(line=="")
             continue;
-        QStringList parts = line.split(delimiter_,QString::SkipEmptyParts);
+        QStringList parts = line.split(delimiter_,Qt::SkipEmptyParts);
 
         QString nodeName = parts.at(0).trimmed();
         parts.removeFirst();
@@ -646,14 +653,14 @@ void LH_DataViewerConnector::updateNodes(QStringList sourceLines)
            currentNode = currentNode->parentNode();
         else
         if(line.startsWith("["))
-           currentNode = currentNode->openChild(line.replace(QRegExp("\\[(.*)\\]") , "\\1" ));
+           currentNode = currentNode->openChild(line.replace(QRegularExpression("\\[(.*)\\]") , "\\1" ));
         else
            currentNode->openChild( nodeName,  nodeValue );
     }
 
     for(int i=0; i<parsingList.count(); i++)
     {
-        parseAddress(rootNode, parsingList[i][0].trimmed().split('.',QString::SkipEmptyParts), parsingList[i], QHash<QString,int>() );
+        parseAddress(rootNode, parsingList[i][0].trimmed().split('.',Qt::SkipEmptyParts), parsingList[i], QHash<QString,int>() );
     }
 }
 
@@ -686,7 +693,7 @@ void LH_DataViewerConnector::updateNodes(QDomNode n, dataNode* currentNode)
     //Apply parsing rules
     if(isRoot)
         for(int i=0; i<parsingList.count(); i++)
-            parseAddress(rootNode, parsingList[i][0].trimmed().split('.',QString::SkipEmptyParts), parsingList[i], QHash<QString,int>() );
+            parseAddress(rootNode, parsingList[i][0].trimmed().split('.',Qt::SkipEmptyParts), parsingList[i], QHash<QString,int>() );
 }
 
 void LH_DataViewerConnector::parseAddress(dataNode* currentNode, QStringList addresses, QStringList parseData, QHash<QString,int> indexes)
@@ -698,11 +705,12 @@ void LH_DataViewerConnector::parseAddress(dataNode* currentNode, QStringList add
         QString nodeName = myAddresses[0];
         myAddresses.removeFirst();
         int nodeIndex = -1;
-        QRegExp rx("^(.*)\\[([0-9]+)\\]$");
-        if(rx.indexIn(nodeName) != -1)
+        QRegularExpression rx("^(.*)\\[([0-9]+)\\]$");
+        QRegularExpressionMatch rxMatch;
+        if((rxMatch = rx.match(nodeName)).hasMatch())
         {
-            nodeName = rx.cap(1);
-            nodeIndex = rx.cap(2).toInt();
+            nodeName = rxMatch.captured(1);
+            nodeIndex = rxMatch.captured(2).toInt();
         }
 
         //You can only create one new layer of nodes here
@@ -734,14 +742,15 @@ void LH_DataViewerConnector::parseAddress(dataNode* currentNode, QStringList add
         QString formatCode = (parseData.count()<3? "" : parseData[2].trimmed());
 
         //now parse the format code as a template using stored indexes
-        QRegExp rx = QRegExp("\\{([a-zA-Z0-9.[\\]]*)\\}");
+        QRegularExpression rx = QRegularExpression("\\{([a-zA-Z0-9.[\\]]*)\\}");
+        QRegularExpressionMatch rxMatch;
         QStringList matches;
         QString tempFormatCode = formatCode;
-        while (rx.indexIn(tempFormatCode) != -1)
+        while ((rxMatch = rx.match(tempFormatCode)).hasMatch())
         {
-            if(!matches.contains(rx.cap(1)))
-                matches.append(rx.cap(1));
-            tempFormatCode.replace(rx.cap(0), "");
+            if(!matches.contains(rxMatch.captured(1)))
+                matches.append(rxMatch.captured(1));
+            tempFormatCode.replace(rxMatch.captured(0), "");
         }
         foreach(QString match, matches)
         {
@@ -771,17 +780,18 @@ dataNode* LH_DataViewerConnector::findNode(QString address, QHash<QString,int> i
 {
     QStringList path = address.split(".");
     dataNode* curNode = rootNode;
-    QRegExp rx("^(.*)\\[([0-9]+)\\]$");
+    QRegularExpression rx("^(.*)\\[([0-9]+)\\]$");
+    QRegularExpressionMatch rxMatch;
     while (path.length()!=0)
     {
         QString nodeName = path.first();
         path.removeFirst();
 
         int nodeIndex = -1;
-        if(rx.indexIn(nodeName) != -1)
+        if((rxMatch = rx.match(nodeName)).hasMatch())
         {
-            nodeName = rx.cap(1);
-            nodeIndex = rx.cap(2).toInt();
+            nodeName = rxMatch.captured(1);
+            nodeIndex = rxMatch.captured(2).toInt();
         }
 
         Q_ASSERT(curNode->contains(nodeName));
@@ -814,11 +824,11 @@ void LH_DataViewerConnector::languageFileChanged()
         if( file.open( QIODevice::ReadOnly) )
         {
             QTextStream stream(&file);
-            QRegExp rxEnd = QRegExp("\\s*;.*$");
-            QRegExp rxPre = QRegExp("^[\\n\\r ]*");
+            QRegularExpression rxEnd = QRegularExpression("\\s*;.*$");
+            QRegularExpression rxPre = QRegularExpression("^[\\n\\r ]*");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',QString::SkipEmptyParts);
+            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
 
             QString segmentName="";
             QString segment = "";
@@ -833,7 +843,7 @@ void LH_DataViewerConnector::languageFileChanged()
                         segment = item.toLower();
                         if(segment.startsWith("[list:"))
                         {
-                            segmentName = QString(segment).replace(QRegExp("\\[list:(.*)\\]") , "\\1" );
+                            segmentName = QString(segment).replace(QRegularExpression("\\[list:(.*)\\]") , "\\1" );
                             if (lists_.contains(segmentName))
                             {
                                 lists_.remove(segmentName);

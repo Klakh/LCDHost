@@ -31,7 +31,7 @@ QTreeWidgetItem * AppTreeWidget::makeChild( QTreeWidgetItem * parent, const QStr
     child = new QTreeWidgetItem();
     child->setText(0,name);
     child->setFlags( Qt::ItemIsEnabled );
-    child->setForeground( 0, QApplication::palette().brush(QPalette::Disabled,QPalette::Foreground) );
+    child->setForeground( 0, QApplication::palette().brush(QPalette::Disabled,QPalette::WindowText) );
     if( parent ) parent->addChild( child );
     else addTopLevelItem( child );
     return child;
@@ -60,14 +60,14 @@ QTreeWidgetItem * AppTreeWidget::addItem( const QStringList & path, int which, Q
 
 QTreeWidgetItem * AppTreeWidget::addItem( const QString & ui_path, const QString & link_path )
 {
-    QTreeWidgetItem * item = addItem( ui_path.split('/',QString::SkipEmptyParts), 0, 0 );
+    QTreeWidgetItem * item = addItem( ui_path.split('/',Qt::SkipEmptyParts), 0, 0 );
     if( item )
     {
         item->setData( 0, Qt::ToolTipRole, link_path );
         if( !link_path.isEmpty() )
         {
             item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled );
-            item->setForeground( 0, QApplication::palette().brush(QPalette::Foreground) );
+            item->setForeground( 0, QApplication::palette().brush(QPalette::WindowText) );
         }
         item->setText( 1, link_path );
     }

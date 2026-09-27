@@ -58,7 +58,6 @@ QMutex LH_Logger::mutex_;
 LH_Logger *LH_Logger::instance_ = 0;
 static lh_log_handler_t lh_log_old_handler = 0;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QStandardPaths>
 static lh_log_handler_t (*lh_log_install_message_handler)(lh_log_handler_t) = qInstallMessageHandler;
 
@@ -66,7 +65,7 @@ QString lh_data_dir()
 {
   QString data_dir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
   if(data_dir.isEmpty())
-    return QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
   return data_dir.append(QLatin1String("/LCDHost"));
 }
 
@@ -97,49 +96,6 @@ static void lh_log_handler(QtMsgType type, const QMessageLogContext &context, co
   }
   return;
 }
-#else
-#include <QDesktopServices>
-static lh_log_handler_t (*lh_log_install_message_handler)(lh_log_handler_t) = qInstallMsgHandler;
-
-QString lh_data_dir()
-{
-  QString data_dir(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation));
-  if(data_dir.isEmpty())
-    return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-  return data_dir.append(QLatin1String("/LCDHost"));
-}
-static void lh_log_handler(QtMsgType type, const char *msg_p)
-{
-  if(lh_log_old_handler)
-    lh_log_old_handler(type, msg_p);
-#ifndef QT_NO_DEBUG
-  else
-  {
-    // Need this to get log output in Qt Creator with Qt 4
-    qInstallMsgHandler(0);
-    switch(type)
-    {
-      case QtDebugMsg:
-        qDebug("%s", msg_p);
-        break;
-      case QtWarningMsg:
-        qWarning("%s", msg_p);
-        break;
-      default:
-        qCritical("%s", msg_p);
-        break;
-    }
-    qInstallMsgHandler(lh_log_handler);
-  }
-#endif
-  if(LH_Logger *logger = LH_Logger::lock())
-  {
-    logger->log(type, QString::fromLatin1(msg_p));
-    logger->unlock();
-  }
-  return;
-}
-#endif
 
 QString lh_log_dir()
 {

@@ -30,6 +30,7 @@
 
 
 #include "LH_QtPlugin.h"
+#include <QElapsedTimer>
 #include "LH_Qt_QString.h"
 #include "LH_Qt_bool.h"
 #include "LH_Qt_QStringList.h"
@@ -39,7 +40,7 @@
 
 #include <QDebug>
 #include <QTcpSocket>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTime>
 #include <QTimer>
 
@@ -71,7 +72,7 @@ class LH_QtPlugin_TS3 : public LH_QtPlugin
 {
     Q_OBJECT
 
-    QTime tryConnectTimer_;
+    QElapsedTimer tryConnectTimer_;
     QTcpSocket *socket_;
     server_action server_action_;
 

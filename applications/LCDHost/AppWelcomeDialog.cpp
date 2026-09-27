@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QFile>
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QScreen>
 
 #include "LCDHost.h"
 #include "AppWelcomeDialog.h"
@@ -59,8 +59,7 @@ AppWelcomeDialog::AppWelcomeDialog(QWidget *parent) :
 
     ui->dontShowAgainCheckBox->setChecked( settings.value("dontShowWelcome",false).toBool() );
     adjustSize();
-    move( QApplication::desktop()->availableGeometry(
-              QApplication::desktop()->primaryScreen() ).center() -
+    move( QGuiApplication::primaryScreen()->availableGeometry().center() -
           rect().center() );
     show();
 }

@@ -28,7 +28,7 @@
 #include <QPainter>
 #include <QStringList>
 #include <QString>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QHash>
 
 #include "LH_DataViewerImage.h"
@@ -166,10 +166,10 @@ void LH_DataViewerImage::fileChanged()
         if( file.open( QIODevice::ReadOnly) )
         {
             QTextStream stream(&file);
-            QRegExp rx = QRegExp("(?:\\s*)?(?:;.*)?$");
+            QRegularExpression rx = QRegularExpression("(?:\\s*)?(?:;.*)?$");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',QString::SkipEmptyParts);
+            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
             imageDefinitions_->clear();
             columnDefinitions_->clear();
 
@@ -191,7 +191,7 @@ void LH_DataViewerImage::fileChanged()
                             columnDefinitions_->insert("",1);
                             columnsDefined = true;
                         }
-                        QStringList parts = item.split('\t',QString::SkipEmptyParts);
+                        QStringList parts = item.split('\t',Qt::SkipEmptyParts);
                         if (item.startsWith('\t')) parts.insert(0,"");
                         imageDefinitions_->insert(QString(parts.at(0).trimmed()), parts);
                         //qDebug() << "image[" << imageDefinitions_->count()-1 << "] (" << parts.at(0).trimmed() << ") = " << parts.join(",");

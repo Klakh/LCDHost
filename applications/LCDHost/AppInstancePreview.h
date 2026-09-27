@@ -31,7 +31,7 @@ class AppInstancePreview : public QFrame
     Q_OBJECT
 
 public:
-    AppInstancePreview( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+    AppInstancePreview( QWidget * parent = 0, Qt::WindowFlags f = Qt::WindowFlags() );
     ~AppInstancePreview();
 
     QString classId() const { return app_inst ? app_inst->classId() : QString(); }

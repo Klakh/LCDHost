@@ -28,7 +28,7 @@
 #include <QPainter>
 #include <QStringList>
 #include <QString>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QHash>
 #include <QSharedMemory>
 
@@ -155,17 +155,17 @@ void LH_WeatherImage::fileChanged()
         if( file.open( QIODevice::ReadOnly) )
         {
             QTextStream stream(&file);
-            QRegExp re = QRegExp(";.*$");
+            QRegularExpression re = QRegularExpression(";.*$");
             QString fileContent = stream.readAll();
 
-            QStringList items = fileContent.split('\r',QString::SkipEmptyParts);
+            QStringList items = fileContent.split('\r',Qt::SkipEmptyParts);
             imageDefinitions.clear();
             foreach (QString item, items)
             {
                 item = item.remove(re).trimmed();
                 if (item!="")
                 {
-                     QStringList parts = item.split('\t',QString::SkipEmptyParts);
+                     QStringList parts = item.split('\t',Qt::SkipEmptyParts);
                      imageDefinitions.insert(QString(parts.at(0)).toInt(), parts);
                 }
             }

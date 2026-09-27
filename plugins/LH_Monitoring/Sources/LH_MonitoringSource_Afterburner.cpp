@@ -19,7 +19,7 @@
 
 #include "LH_MonitoringSource_Afterburner.h"
 #include "LH_MonitoringTypes_Afterburner.h"
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSharedMemory>
 
 LH_MonitoringSource_Afterburner::LH_MonitoringSource_Afterburner(LH_QtObject *parent): LH_MonitoringSource(parent, "MSI Afterburner") {}
@@ -44,13 +44,13 @@ bool LH_MonitoringSource_Afterburner::doUpdate()
                 qDebug() << "LH_MonitoringSource_Afterburner: Shared memory has been terminated; try again later.";
             else
             {
-                QRegExp rx = QRegExp("([^0-9]*)([0-9]+)(.*)");
-                rx.setPatternSyntax(QRegExp::RegExp2);
+                QRegularExpression rx = QRegularExpression("([^0-9]*)([0-9]+)(.*)");
+                QRegularExpressionMatch rxMatch;
                 for (uint i=0; i<MAHMHeader->dwNumEntries; i++)
                 {
                     MAHM_SHARED_MEMORY_ENTRY* MAHMMemory = (MAHM_SHARED_MEMORY_ENTRY*)((uchar*)MAHMHeader + MAHMHeader->dwHeaderSize + i * MAHMHeader->dwEntrySize);
                     QString sensorName = QString(MAHMMemory->szSrcName);
-                    QString sensorGroup = (rx.indexIn(reverse(sensorName))>-1? reverse(rx.cap(3)) + reverse(rx.cap(1)) : sensorName);
+                    QString sensorGroup = ((rxMatch = rx.match(reverse(sensorName))).hasMatch()? reverse(rxMatch.captured(3)) + reverse(rxMatch.captured(1)) : sensorName);
 
                     SensorDefinition def = SensorDefinition( QString(MAHMMemory->szSrcUnits), MAHMMemory->minLimit, MAHMMemory->maxLimit );
                     updateValue(sensorGroup,"",sensorName,(qreal)MAHMMemory->data, def);

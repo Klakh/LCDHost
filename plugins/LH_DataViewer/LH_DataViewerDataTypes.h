@@ -22,7 +22,7 @@
 
 #include <QString>
 #include <QHash>
-#include <QMutex>
+#include <QRecursiveMutex>
 #include <QList>
 #include <QDebug>
 #include <QStringList>
@@ -159,7 +159,7 @@ class dataNode
     QString getProcessVersion(QString exeFile);
 
 protected:
-    QMutex* mutex;
+    QRecursiveMutex* mutex;
 
     void divorce();
     void clear();

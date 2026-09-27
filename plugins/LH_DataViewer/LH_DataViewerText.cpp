@@ -25,7 +25,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QTime>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QDebug>
 
 #include "LH_DataViewerText.h"

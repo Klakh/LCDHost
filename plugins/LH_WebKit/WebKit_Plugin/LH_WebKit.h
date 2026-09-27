@@ -37,6 +37,7 @@
 #define LH_WEBKIT_H
 
 #include <QProcess>
+#include <QElapsedTimer>
 #include <QtNetwork>
 #include <QThread>
 
@@ -73,7 +74,7 @@ class LH_WebKit : public LH_QtInstance
     QSize size_;
     QUrl url_;
     QLocalSocket *sock_;
-    QTime lastpong_;
+    QElapsedTimer lastpong_;
     bool sent_html_;
     bool parsingEnabled_;
     WebKitData kitdata_;

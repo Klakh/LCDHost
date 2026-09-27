@@ -35,11 +35,7 @@
 QAtomicPointer<LH_HidWorker> LH_HidWorker::instance_ = 0;
 int LH_HidWorker::event_publish_ = -1;
 
-#if QT_VERSION < 0x050000
-# define HIDINSTANCE static_cast<LH_HidWorker *>(LH_HidWorker::instance_)
-#else
-# define HIDINSTANCE static_cast<LH_HidWorker *>(LH_HidWorker::instance_.load())
-#endif
+# define HIDINSTANCE static_cast<LH_HidWorker *>(LH_HidWorker::instance_.loadAcquire())
 
 bool LH_HidWorker::subscribe(QObject *recipient, const char *slot)
 {

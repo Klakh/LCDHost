@@ -19,7 +19,6 @@
 
 #include "RemoteWindow.h"
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QCloseEvent>
 
 RemoteWindow::RemoteWindow() :

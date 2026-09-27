@@ -254,7 +254,7 @@ bool AppSetupItem::setLinkPath(QString path)
 
     if(need_fix)
     {
-        fixme(QByteArray("old link style: <tt>" ).append(path).append("</tt>").constData() );
+        fixme(QByteArray("old link style: <tt>" ).append(path.toUtf8()).append("</tt>").constData() );
         path.remove(0, 1);
         if(is_publish)
             setPublishPath(path.trimmed());
@@ -598,7 +598,7 @@ QWidget *AppSetupItem::valueWidget( QWidget *parent )
             retv = new QWidget(parent);
             QHBoxLayout *toplayout = new QHBoxLayout(retv);
             QGroupBox *groupbox = new QGroupBox(retv);
-            toplayout->setMargin(0);
+            toplayout->setContentsMargins(0, 0, 0, 0);
             toplayout->addWidget( groupbox, 0 );
             toplayout->addWidget( new QWidget(), 1 );
             QHBoxLayout *layout = new QHBoxLayout(groupbox);

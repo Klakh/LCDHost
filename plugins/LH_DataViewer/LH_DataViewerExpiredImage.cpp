@@ -28,7 +28,7 @@
 #include <QPainter>
 #include <QStringList>
 #include <QString>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QHash>
 
 #include "LH_DataViewerExpiredImage.h"

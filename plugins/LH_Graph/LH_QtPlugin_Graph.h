@@ -28,6 +28,7 @@
 #define LH_QTPLUGIN_GRAPH_H
 
 #include "LH_QtPlugin.h"
+#include <QElapsedTimer>
 #include "DataCollection.h"
 #include "LH_QtCPU.h"
 #include "LH_QtNetwork.h"
@@ -49,9 +50,9 @@ class LH_QtPlugin_Graph : public LH_QtPlugin
     Q_OBJECT
     LH_QtCPU cpu_;
     LH_QtNetwork net_;
-    QTime cpu_timer_;
-    QTime mem_timer_;
-    QTime net_timer_;
+    QElapsedTimer cpu_timer_;
+    QElapsedTimer mem_timer_;
+    QElapsedTimer net_timer_;
 
 public:
     explicit LH_QtPlugin_Graph() : cpu_(this), net_(this) {

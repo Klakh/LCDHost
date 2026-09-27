@@ -33,6 +33,7 @@
   */
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
 #include <QTime>
 #include <QDebug>
 
@@ -199,7 +200,7 @@ void LH_LgLcdCallbackThread::run()
             /* Don't report file not found errors */
             if( retv != -1 && retv != ERROR_FILE_NOT_FOUND && retv != ERROR_ALREADY_EXISTS && LCD_ERR( retv ) )
             {
-                QTime last_enum;
+                QElapsedTimer last_enum;
                 last_enum.start();
                 online_ = true;
 
